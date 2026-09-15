@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawMatch - ข้อมูลส่วนตัวและการเตรียมพร้อมรับเลี้ยง</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        peach: {
+                            50: '#FDF0EB',
+                            500: '#E29578',
+                            600: '#C07055',
+                        },
+                        brand: {
+                            bg: '#FCFAF8',
+                            text: '#44403C',
+                        }
+                    },
+                    fontFamily: {
+                        mali: ['Mali', 'cursive', 'sans-serif'],
+                        itim: ['Itim', 'cursive', 'sans-serif'],
+                        prompt: ['Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Mali, Itim, Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Itim&family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Mali', cursive, sans-serif; 
+            background-color: #FCFAF8; 
+            color: #44403C; 
+        }
+        .btn-peach { 
+            background-color: #E29578; 
+            color: white; 
+            transition: all 0.2s ease-in-out; 
+            font-weight: 600; 
+        }
+        .btn-peach:hover { 
+            background-color: #C07055; 
+            box-shadow: 0 4px 14px -2px rgba(226, 149, 120, 0.45); 
+        }
+        .btn-outline-peach { 
+            border: 1.5px solid #E29578; 
+            color: #C07055; 
+            background: white; 
+            transition: all 0.2s; 
+            font-weight: 600; 
+        }
+        .btn-outline-peach:hover { 
+            background-color: #FDF0EB; 
+        }
+        .toast-enter {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        .toast-show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Global Navbar -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-stone-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#FDF0EB] text-[#C07055] rounded-full flex items-center justify-center text-xl font-bold shadow-sm">🐾</div>
+                <div>
+                    <h1 class="text-xl font-bold text-stone-800 leading-none">PawMatch</h1>
+                    <p class="text-[10px] text-[#C07055] font-semibold tracking-wider mt-0.5 font-prompt">จับคู่ใจ เพื่อสัตว์จร</p>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600 font-prompt">
+                <a href="#" class="hover:text-[#C07055] transition">หน้าหลัก</a>
+                <a href="#" class="hover:text-[#C07055] transition">เคสขอความช่วยเหลือ</a>
+                <a href="#" class="text-[#C07055] font-semibold">จัดการโปรไฟล์</a>
+            </nav>
+
+            <div id="nav-auth-section" class="flex items-center gap-3">
+                <!-- Guest State -->
+                <div id="guest-menu" class="hidden items-center gap-2">
+                    <button onclick="loginMockUser()" class="btn-peach px-5 py-2 rounded-full text-sm font-medium shadow-sm">
+                        เข้าสู่ระบบ (จำลอง)
+                    </button>
+                </div>
+
+                <!-- Logged In State -->
+                <div id="user-menu" class="relative flex items-center gap-3">
+                    <button id="profile-dropdown-btn" onclick="toggleDropdown()" class="flex items-center gap-3 p-1.5 rounded-full hover:bg-stone-50 border border-stone-200 transition">
+                        <div class="w-8 h-8 rounded-full bg-[#FDF0EB] text-[#C07055] font-bold flex items-center justify-center border border-[#E29578] text-sm">
+                            เคน
+                        </div>
+                        <span id="nav-user-name" class="text-sm font-semibold text-stone-800 pr-1 font-prompt">เคน นิคับ</span>
+                        <span class="text-xs text-stone-400">▼</span>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div id="profile-dropdown" class="hidden absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-lg border border-stone-100 py-2 font-prompt text-sm z-50">
+                        <div class="px-4 py-2 border-b border-stone-100">
+                            <p class="font-semibold text-stone-800" id="dropdown-user-name">เคน นิคับ</p>
+                            <p class="text-xs text-stone-400 truncate" id="dropdown-user-email">ken_nikab@gmail.com</p>
+                        </div>
+                        <a href="javascript:void(0)" onclick="toggleDropdown()" class="flex items-center gap-2 px-4 py-2.5 bg-[#FDF0EB]/60 text-[#C07055] font-medium">
+                            <span>📝</span> แก้ไขข้อมูลส่วนตัว
+                        </a>
+                        <a href="javascript:void(0)" onclick="openPreviewModal(); toggleDropdown();" class="flex items-center gap-2 px-4 py-2.5 hover:bg-stone-50 text-stone-700 transition">
+                            <span>📄</span> จำลองฟอร์มขอรับเลี้ยง
+                        </a>
+                        <div class="border-t border-stone-100 my-1"></div>
+                        <button onclick="handleLogout()" class="w-full text-left flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 text-red-500 font-medium transition">
+                            <span>🚪</span> ออกจากระบบ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content: Edit Profile -->
+    <main class="max-w-4xl mx-auto px-6 py-10 w-full flex-1">
+        
+        <!-- Page Title & Banner -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-stone-800">ข้อมูลส่วนตัวและคุณสมบัติผู้รับเลี้ยง</h2>
+            <p class="text-sm text-stone-500 font-prompt mt-1">
+                กรอกข้อมูลเหล่านี้ไว้เพื่อความสะดวก ระบบจะดึงข้อมูลชุดนี้ไปใส่ใน <strong>แบบฟอร์มขอรับเลี้ยงสัตว์</strong> อัตโนมัติทันที
+            </p>
+            <div class="mt-4 p-4 rounded-2xl bg-[#FDF0EB] border border-[#E29578]/40 flex items-center justify-between">
+                <div class="flex items-center gap-3 text-xs font-prompt text-[#C07055]">
+                    <span class="text-lg">💡</span>
+                    <span>ข้อมูลมีความสมบูรณ์ <strong>98%</strong> พร้อมใช้งานสำหรับฟอร์มยื่นขออุปการะน้องหมา-แมว</span>
+                </div>
+                <button onclick="openPreviewModal()" class="text-xs font-prompt font-semibold text-[#C07055] underline hover:text-stone-800">
+                    ดูตัวอย่างฟอร์มขอรับเลี้ยง ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <form id="profile-form" onsubmit="handleProfileSubmit(event)" class="space-y-8">
+            
+            <!-- Section 1: Basic Information -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
+                <h3 class="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span>👤</span> ข้อมูลทั่วไปของผู้ใช้งาน
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 font-prompt text-xs">
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">ชื่อ-นามสกุล</label>
+                        <input type="text" id="input-name" required value="เคน นิคับ" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">อีเมล (ล็อกไว้ตามบัญชี)</label>
+                        <input type="email" id="input-email" disabled value="ken_nikab@gmail.com" class="w-full px-4 py-3 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">วัน/เดือน/ปีเกิด</label>
+                        <input type="date" id="input-birthdate" value="1996-05-14" required class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">รายได้เฉลี่ยต่อเดือน (บาท)</label>
+                        <select id="input-income" required class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            <option value="ต่ำกว่า 20,000">ต่ำกว่า 20,000</option>
+                            <option value="20,000 - 35,000">20,000 - 35,000</option>
+                            <option value="35,001 - 50,000" selected>35,001 - 50,000</option>
+                            <option value="50,001 - 80,000">50,001 - 80,000</option>
+                            <option value="มากกว่า 80,000">มากกว่า 80,000</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Residential Details (Custom Split Boxes & Cascading Dropdown) -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-6">
+                <h3 class="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span>🏡</span> ข้อมูลที่พักอาศัย (Residential)
+                </h3>
+
+                <div class="space-y-4 font-prompt text-xs">
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">ลักษณะที่พักอาศัย</label>
+                        <select id="input-housing" required class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            <option value="บ้านเดี่ยว (มีรั้วรอบขอบชิด)" selected>บ้านเดี่ยว (มีรั้วรอบขอบชิด)</option>
+                            <option value="ทาวน์โฮม / ทาวน์เฮาส์">ทาวน์โฮม / ทาวน์เฮาส์</option>
+                            <option value="คอนโดมิเนียม (Pet-Friendly)">คอนโดมิเนียม (Pet-Friendly)</option>
+                            <option value="อพาร์ตเมนต์ / หอพัก">อพาร์ตเมนต์ / หอพัก</option>
+                        </select>
+                    </div>
+
+                    <!-- Sub-section: ที่อยู่แบบแยกกล่องกรอกเอง -->
+                    <div class="pt-2">
+                        <p class="font-semibold text-stone-800 mb-3 text-xs flex items-center gap-1.5">
+                            <span class="text-[#E29578]">📍</span> ที่อยู่โดยละเอียด (กรอกข้อมูลเฉพาะตัว)
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-stone-600 mb-1">บ้านเลขที่ <span class="text-red-400">*</span></label>
+                                <input type="text" id="input-addr-no" required value="88/12" placeholder="เช่น 123/45" class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">หมู่บ้าน / อาคาร / คอนโด</label>
+                                <input type="text" id="input-addr-village" value="หมู่บ้านแสนสุข" placeholder="เช่น บ้านสวนพฤกษา" class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">หมู่ที่</label>
+                                <input type="text" id="input-addr-moo" value="4" placeholder="เช่น 6" class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">ซอย</label>
+                                <input type="text" id="input-addr-soi" value="พหลโยธิน 32" placeholder="เช่น ลาดพร้าว 15" class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            </div>
+                            <div class="sm:col-span-2 md:col-span-2">
+                                <label class="block text-stone-600 mb-1">ถนน</label>
+                                <input type="text" id="input-addr-road" value="พหลโยธิน" placeholder="เช่น พหลโยธิน" class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-section: Cascading Dropdown (จังหวัด > อำเภอ > ตำบล > รหัสไปรษณีย์) -->
+                    <div class="pt-3 border-t border-stone-100">
+                        <p class="font-semibold text-stone-800 mb-3 text-xs flex items-center gap-1.5">
+                            
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                            <!-- 1. จังหวัด -->
+                            <div>
+                                <label class="block text-stone-600 mb-1"> จังหวัด <span class="text-red-400">*</span></label>
+                                <select id="select-province" onchange="handleProvinceChange()" required class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                                    <option value="">-- เลือกจังหวัด --</option>
+                                </select>
+                            </div>
+
+                            <!-- 2. อำเภอ / เขต -->
+                            <div>
+                                <label class="block text-stone-600 mb-1"> อำเภอ / เขต <span class="text-red-400">*</span></label>
+                                <select id="select-district" onchange="handleDistrictChange()" required disabled class="w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl focus:border-[#E29578] outline-none transition disabled:cursor-not-allowed">
+                                    <option value="">-- กรุณาเลือกจังหวัดก่อน --</option>
+                                </select>
+                            </div>
+
+                            <!-- 3. ตำบล / แขวง -->
+                            <div>
+                                <label class="block text-stone-600 mb-1"> ตำบล / แขวง <span class="text-red-400">*</span></label>
+                                <select id="select-subdistrict" onchange="handleSubDistrictChange()" required disabled class="w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl focus:border-[#E29578] outline-none transition disabled:cursor-not-allowed">
+                                    <option value="">-- กรุณาเลือกอำเภอก่อน --</option>
+                                </select>
+                            </div>
+
+                            <!-- 4. รหัสไปรษณีย์ (Auto-fill) -->
+                            <div>
+                                <label class="block text-stone-600 mb-1"> รหัสไปรษณีย์ </label>
+                                <input type="text" id="input-zipcode" readonly placeholder="ขึ้นอัตโนมัติ" class="w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-600 font-semibold rounded-xl cursor-not-allowed outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Section 3: Household & Existing Pets -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
+                <h3 class="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span>🐾</span> สมาชิกในบ้านและสัตว์เลี้ยงปัจจุบัน
+                </h3>
+
+                <div class="space-y-4 font-prompt text-xs">
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">คุณอาศัยอยู่กับใครบ้างในครัวเรือน?</label>
+                        <input type="text" id="input-household" required value="อยู่คนเดียว ไม่มีเด็กหรือผู้สูงอายุ" placeholder="เช่น อยู่กับแฟน 2 คน, ครอบครัวมีผู้สูงอายุและเด็ก 1 คน" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition">
+                        <span class="text-[11px] text-stone-400 mt-1 block">* ข้อมูลนี้ช่วยประเมินความปลอดภัยและความพร้อมในการปรับตัวของสัตว์เลี้ยง</span>
+                    </div>
+
+                    <div>
+                        <label class="block font-medium text-stone-700 mb-1.5">ปัจจุบันมีสัตว์เลี้ยงในบ้านกี่ตัว และเป็นสัตว์ชนิดใด?</label>
+                        <textarea id="input-pets" rows="3" required placeholder="เช่น มีแมวไทย 1 ตัว (ทำหมันและฉีดวัคซีนครบแล้ว) หรือ ไม่มีสัตว์เลี้ยงในบ้าน" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition leading-relaxed">มีแมว 1 ตัว (ชื่อส้มซ่า ทำหมันแล้ว ฉีดวัคซีนครบถ้วน)</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Action Button -->
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="resetDefaults()" class="px-6 py-3 rounded-2xl border border-stone-200 text-stone-500 font-prompt text-xs font-semibold hover:bg-stone-50 transition">
+                    ล้างค่าเดิม
+                </button>
+                <button type="submit" class="btn-peach px-8 py-3 rounded-2xl text-xs font-semibold shadow-sm">
+                    บันทึกข้อมูลส่วนตัว
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Modal: Simulation Adoption Application Form (Auto-fill Preview) -->
+    <div id="preview-modal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-xl border border-stone-100 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closePreviewModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center font-bold text-xs">✕</button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-2xl">📋</span>
+                <div>
+                    <h3 class="text-lg font-bold text-stone-800">ฟอร์มขอรับเลี้ยงสัตว์ (แสดงตัวอย่าง Auto-Fill)</h3>
+                    <p class="text-xs text-stone-500 font-prompt">ข้อมูลที่อยู่จะถูกรวมเป็นที่อยู่ฉบับเต็มส่งต่อไปยังแบบฟอร์มโดยอัตโนมัติ</p>
+                </div>
+            </div>
+
+            <!-- Target Pet Sample -->
+            <div class="flex items-center gap-3 bg-[#FDF0EB]/70 p-3 rounded-2xl mb-5 border border-[#E29578]/20">
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=120&q=80" alt="Cat" class="w-12 h-12 rounded-xl object-cover">
+                <div>
+                    <p class="font-itim text-base text-stone-800">เคส: น้องมะลิ (หาบ้านถาวร)</p>
+                    <p class="text-[11px] font-prompt text-[#C07055]">พิกัด: บางเขน กรุงเทพฯ</p>
+                </div>
+            </div>
+
+            <!-- Auto-populated Fields -->
+            <div class="space-y-3 font-prompt text-xs border border-stone-200/80 rounded-2xl p-5 bg-stone-50/50">
+                <div class="flex justify-between border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400">ผู้ยื่นคำขอ:</span>
+                    <span class="font-semibold text-stone-800" id="preview-name">-</span>
+                </div>
+                <div class="flex justify-between border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400">อีเมลติดต่อ:</span>
+                    <span class="text-stone-700" id="preview-email">-</span>
+                </div>
+                <div class="flex justify-between border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400">วันเดือนปีเกิด:</span>
+                    <span class="text-stone-700" id="preview-birthdate">-</span>
+                </div>
+                <div class="flex justify-between border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400">ระดับรายได้ต่อเดือน:</span>
+                    <span class="text-stone-700" id="preview-income">-</span>
+                </div>
+                <div class="flex justify-between border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400">ลักษณะที่อยู่อาศัย:</span>
+                    <span class="text-stone-700" id="preview-housing">-</span>
+                </div>
+                <div class="border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400 block mb-1">ที่อยู่ปัจจุบันฉบับเต็ม (Full Address):</span>
+                    <span class="text-stone-700 leading-relaxed block font-medium" id="preview-address">-</span>
+                </div>
+                <div class="border-b border-stone-200/60 pb-2">
+                    <span class="text-stone-400 block mb-1">สมาชิกในบ้าน:</span>
+                    <span class="text-stone-700" id="preview-household">-</span>
+                </div>
+                <div>
+                    <span class="text-stone-400 block mb-1">สัตว์เลี้ยงเดิม:</span>
+                    <span class="text-stone-700" id="preview-pets">-</span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 font-prompt">
+                <button onclick="closePreviewModal()" class="btn-peach px-6 py-2.5 rounded-xl text-xs">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Application Logic -->
+    <script>
+        // ==========================================
+        // 1. MASTER ADDRESS DATA (จำลองฐานข้อมูลที่อยู่ไทย)
+        // ==========================================
+        const addressDatabase = {
+            "กรุงเทพมหานคร": {
+                "จตุจักร": {
+                    "เสนานิคม": "10900",
+                    "จันทรเกษม": "10900",
+                    "จอมพล": "10900",
+                    "ลาดยาว": "10900"
+                },
+                "บางเขน": {
+                    "อนุสาวรีย์": "10220",
+                    "ท่าแร้ง": "10220"
+                },
+                "บางซื่อ": {
+                    "บางซื่อ": "10800",
+                    "วงศ์สว่าง": "10800"
+                }
+            },
+            "นนทบุรี": {
+                "เมืองนนทบุรี": {
+                    "สวนใหญ่": "11000",
+                    "ตลาดขวัญ": "11000",
+                    "บางเขน": "11000"
+                },
+                "ปากเกร็ด": {
+                    "ปากเกร็ด": "11120",
+                    "บางพูด": "11120",
+                    "คลองเกลือ": "11120"
+                }
+            },
+            "เชียงใหม่": {
+                "เมืองเชียงใหม่": {
+                    "ศรีภูมิ": "50200",
+                    "พระสิงห์": "50200",
+                    "สุเทพ": "50200",
+                    "ช้างเผือก": "50300"
+                },
+                "หางดง": {
+                    "หางดง": "50230",
+                    "หนองควาย": "50230"
+                }
+            },
+            "ชลบุรี": {
+                "เมืองชลบุรี": {
+                    "บางปลาสร้อย": "20000",
+                    "แสนสุข": "20130"
+                },
+                "บางละมุง": {
+                    "หนองปรือ": "20150",
+                    "นาเกลือ": "20150"
+                }
+            }
+        };
+
+        // User State initialized with "เคน นิคับ"
+        let userState = {
+            name: "เคน นิคับ",
+            email: "ken_nikab@gmail.com",
+            birthdate: "1996-05-14",
+            income: "35,001 - 50,000",
+            housing: "บ้านเดี่ยว (มีรั้วรอบขอบชิด)",
+            addressDetails: {
+                no: "88/12",
+                village: "หมู่บ้านแสนสุข",
+                moo: "4",
+                soi: "พหลโยธิน 32",
+                road: "พหลโยธิน",
+                province: "กรุงเทพมหานคร",
+                district: "จตุจักร",
+                subdistrict: "เสนานิคม",
+                zipcode: "10900"
+            },
+            fullAddress: "",
+            household: "อยู่คนเดียว ไม่มีเด็กหรือผู้สูงอายุ",
+            pets: "มีแมว 1 ตัว (ชื่อส้มซ่า ทำหมันแล้ว ฉีดวัคซีนครบถ้วน)"
+        };
+
+        // ==========================================
+        // 2. ADDRESS CASCADE LOGIC
+        // ==========================================
+        function populateProvinces() {
+            const provinceSelect = document.getElementById('select-province');
+            provinceSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+            
+            for (const province in addressDatabase) {
+                const opt = document.createElement('option');
+                opt.value = province;
+                opt.textContent = province;
+                provinceSelect.appendChild(opt);
+            }
+        }
+
+        function handleProvinceChange() {
+            const province = document.getElementById('select-province').value;
+            const districtSelect = document.getElementById('select-district');
+            const subdistrictSelect = document.getElementById('select-subdistrict');
+            const zipcodeInput = document.getElementById('input-zipcode');
+
+            // Reset Sub fields
+            districtSelect.innerHTML = '<option value="">-- เลือกอำเภอ / เขต --</option>';
+            subdistrictSelect.innerHTML = '<option value="">-- กรุณาเลือกอำเภอก่อน --</option>';
+            subdistrictSelect.disabled = true;
+            subdistrictSelect.className = 'w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl focus:border-[#E29578] outline-none transition disabled:cursor-not-allowed';
+            zipcodeInput.value = '';
+
+            if (province && addressDatabase[province]) {
+                districtSelect.disabled = false;
+                districtSelect.className = 'w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition';
+                
+                for (const district in addressDatabase[province]) {
+                    const opt = document.createElement('option');
+                    opt.value = district;
+                    opt.textContent = district;
+                    districtSelect.appendChild(opt);
+                }
+            } else {
+                districtSelect.disabled = true;
+                districtSelect.className = 'w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl focus:border-[#E29578] outline-none transition disabled:cursor-not-allowed';
+            }
+        }
+
+        function handleDistrictChange() {
+            const province = document.getElementById('select-province').value;
+            const district = document.getElementById('select-district').value;
+            const subdistrictSelect = document.getElementById('select-subdistrict');
+            const zipcodeInput = document.getElementById('input-zipcode');
+
+            subdistrictSelect.innerHTML = '<option value="">-- เลือกตำบล / แขวง --</option>';
+            zipcodeInput.value = '';
+
+            if (province && district && addressDatabase[province][district]) {
+                subdistrictSelect.disabled = false;
+                subdistrictSelect.className = 'w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-[#E29578] focus:bg-white outline-none transition';
+                
+                for (const subdistrict in addressDatabase[province][district]) {
+                    const opt = document.createElement('option');
+                    opt.value = subdistrict;
+                    opt.textContent = subdistrict;
+                    subdistrictSelect.appendChild(opt);
+                }
+            } else {
+                subdistrictSelect.disabled = true;
+                subdistrictSelect.className = 'w-full px-3.5 py-2.5 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl focus:border-[#E29578] outline-none transition disabled:cursor-not-allowed';
+            }
+        }
+
+        function handleSubDistrictChange() {
+            const province = document.getElementById('select-province').value;
+            const district = document.getElementById('select-district').value;
+            const subdistrict = document.getElementById('select-subdistrict').value;
+            const zipcodeInput = document.getElementById('input-zipcode');
+
+            if (province && district && subdistrict && addressDatabase[province][district][subdistrict]) {
+                const zip = addressDatabase[province][district][subdistrict];
+                zipcodeInput.value = zip;
+            } else {
+                zipcodeInput.value = '';
+            }
+        }
+
+        // Set Default initial Address for "เคน นิคับ"
+        function initInitialAddress() {
+            populateProvinces();
+
+            const addr = userState.addressDetails;
+            document.getElementById('input-addr-no').value = addr.no;
+            document.getElementById('input-addr-village').value = addr.village;
+            document.getElementById('input-addr-moo').value = addr.moo;
+            document.getElementById('input-addr-soi').value = addr.soi;
+            document.getElementById('input-addr-road').value = addr.road;
+
+            // Trigger Cascade Dropdowns
+            document.getElementById('select-province').value = addr.province;
+            handleProvinceChange();
+
+            document.getElementById('select-district').value = addr.district;
+            handleDistrictChange();
+
+            document.getElementById('select-subdistrict').value = addr.subdistrict;
+            handleSubDistrictChange();
+
+            buildFullAddressString();
+        }
+
+        function buildFullAddressString() {
+            const no = document.getElementById('input-addr-no').value.trim();
+            const village = document.getElementById('input-addr-village').value.trim();
+            const moo = document.getElementById('input-addr-moo').value.trim();
+            const soi = document.getElementById('input-addr-soi').value.trim();
+            const road = document.getElementById('input-addr-road').value.trim();
+            const province = document.getElementById('select-province').value;
+            const district = document.getElementById('select-district').value;
+            const subdistrict = document.getElementById('select-subdistrict').value;
+            const zipcode = document.getElementById('input-zipcode').value;
+
+            const isBkk = (province === "กรุงเทพมหานคร");
+
+            let parts = [];
+            if (no) parts.push(no);
+            if (village) parts.push(village);
+            if (moo) parts.push(`หมู่ ${moo}`);
+            if (soi) parts.push(`ซอย${soi}`);
+            if (road) parts.push(`ถนน${road}`);
+
+            if (subdistrict) parts.push(isBkk ? `แขวง${subdistrict}` : `ตำบล${subdistrict}`);
+            if (district) parts.push(isBkk ? `เขต${district}` : `อำเภอ${district}`);
+            if (province) parts.push(isBkk ? province : `จังหวัด${province}`);
+            if (zipcode) parts.push(zipcode);
+
+            userState.fullAddress = parts.join(' ');
+            return userState.fullAddress;
+        }
+
+        // ==========================================
+        // 3. TOAST & NOTIFICATION
+        // ==========================================
+        function showToast(type, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let icon = '🐾';
+            let borderColor = 'border-[#E29578]';
+
+            if (type === 'success') {
+                icon = '✅';
+                borderColor = 'border-emerald-500';
+            } else if (type === 'info') {
+                icon = '💡';
+                borderColor = 'border-[#E29578]';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border-l-4 ${borderColor} bg-white text-stone-800 font-prompt text-xs transition-all duration-300 transform toast-enter`;
+            toast.innerHTML = `
+                <span class="text-base">${icon}</span>
+                <span class="font-medium">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-show');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                toast.classList.add('toast-enter');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ==========================================
+        // 4. FORM SUBMIT & PREVIEW MODAL
+        // ==========================================
+        function handleProfileSubmit(e) {
+            e.preventDefault();
+
+            userState.name = document.getElementById('input-name').value;
+            userState.birthdate = document.getElementById('input-birthdate').value;
+            userState.income = document.getElementById('input-income').value;
+            userState.housing = document.getElementById('input-housing').value;
+            userState.household = document.getElementById('input-household').value;
+            userState.pets = document.getElementById('input-pets').value;
+
+            // Save Sub Address
+            userState.addressDetails = {
+                no: document.getElementById('input-addr-no').value,
+                village: document.getElementById('input-addr-village').value,
+                moo: document.getElementById('input-addr-moo').value,
+                soi: document.getElementById('input-addr-soi').value,
+                road: document.getElementById('input-addr-road').value,
+                province: document.getElementById('select-province').value,
+                district: document.getElementById('select-district').value,
+                subdistrict: document.getElementById('select-subdistrict').value,
+                zipcode: document.getElementById('input-zipcode').value
+            };
+
+            buildFullAddressString();
+
+            // Sync Navbar Display
+            document.getElementById('nav-user-name').innerText = userState.name;
+            document.getElementById('dropdown-user-name').innerText = userState.name;
+
+            showToast('success', 'บันทึกข้อมูลส่วนตัวและที่พักอาศัยเรียบร้อยแล้ว!');
+        }
+
+        function openPreviewModal() {
+            buildFullAddressString();
+
+            document.getElementById('preview-name').innerText = userState.name;
+            document.getElementById('preview-email').innerText = userState.email;
+            document.getElementById('preview-birthdate').innerText = userState.birthdate;
+            document.getElementById('preview-income').innerText = userState.income + " บาท";
+            document.getElementById('preview-housing').innerText = userState.housing;
+            document.getElementById('preview-address').innerText = userState.fullAddress || "ยังไม่ได้ระบุที่อยู่";
+            document.getElementById('preview-household').innerText = userState.household;
+            document.getElementById('preview-pets').innerText = userState.pets;
+
+            document.getElementById('preview-modal').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.add('hidden');
+        }
+
+        function resetDefaults() {
+            document.getElementById('input-birthdate').value = "";
+            document.getElementById('input-addr-no').value = "";
+            document.getElementById('input-addr-village').value = "";
+            document.getElementById('input-addr-moo').value = "";
+            document.getElementById('input-addr-soi').value = "";
+            document.getElementById('input-addr-road').value = "";
+            document.getElementById('select-province').value = "";
+            handleProvinceChange();
+            document.getElementById('input-household').value = "";
+            document.getElementById('input-pets').value = "";
+            showToast('info', 'รีเซ็ตข้อมูลบางช่องแล้ว');
+        }
+
+        // Dropdown & Session
+        function toggleDropdown() {
+            document.getElementById('profile-dropdown').classList.toggle('hidden');
+        }
+
+        function handleLogout() {
+            document.getElementById('user-menu').classList.add('hidden');
+            document.getElementById('guest-menu').classList.remove('hidden');
+            document.getElementById('guest-menu').classList.add('flex');
+            document.getElementById('profile-dropdown').classList.add('hidden');
+            showToast('info', 'คุณออกจากระบบเรียบร้อยแล้ว');
+        }
+
+        function loginMockUser() {
+            document.getElementById('guest-menu').classList.add('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            showToast('success', 'เข้าสู่ระบบในชื่อ เคน นิคับ สำเร็จ');
+        }
+
+        window.addEventListener('click', function(e) {
+            const dropdownBtn = document.getElementById('profile-dropdown-btn');
+            const dropdown = document.getElementById('profile-dropdown');
+            if (dropdownBtn && !dropdownBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Initialize Form on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initInitialAddress();
+        });
+    </script>
+</body>
+</html>
