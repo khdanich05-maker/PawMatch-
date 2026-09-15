@@ -2,7 +2,7 @@
 
 ### 1 โคลนโปรเจกต์ลงเครื่อง:ให้เพื่อนเปิด Terminal ในโฟลเดอร์ที่ต้องการเก็บงาน แล้วรัน:
 
-    Bashgit clone https://github.com/khdanich05-maker/PawMatch-.git
+    git clone https://github.com/khdanich05-maker/PawMatch-.git
     cd PawMatch-
 
 ### ** 2 ติดตั้ง Dependencies (node_modules) **:
