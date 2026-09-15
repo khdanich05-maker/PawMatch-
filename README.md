@@ -8,9 +8,10 @@
 ### ** 2 ติดตั้ง Dependencies (node_modules) **:
 
 **_เพราะเราตัด node_modules ออกจาก Git เพื่อนต้องสั่งติดตั้ง library ลงในเครื่องตัวเองก่อน_**
-ติดตั้งฝั่ง Client:
-cd client
-npm install
+
+    ติดตั้งฝั่ง Client:
+    cd client
+    npm install
 
     ติดตั้งฝั่ง Server (ถ้าโฟลเดอร์ server มี package.json ให้เข้าไปลงด้วย):
     cd server
