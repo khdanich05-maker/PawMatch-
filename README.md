@@ -36,7 +36,7 @@
 ### แยก Branch ทำงาน: แนะนำให้สร้าง Branch ใหม่สำหรับฟีเจอร์ของตัวเอง แทนที่จะ push เข้า main โดยตรง:
 
 **_ตัวอย่าง_**
-git checkout -b feature/login-page หรือ git checkout -b fix/navbar-bug
+    git checkout -b feature/login-page หรือ git checkout -b fix/navbar-bug
 
 ### เขียนโค้ดได้ตามปกติ...
 
