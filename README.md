@@ -14,6 +14,7 @@
     npm install
 
     ติดตั้งฝั่ง Server (ถ้าโฟลเดอร์ server มี package.json ให้เข้าไปลงด้วย):
+    npm init -y
     cd server
     npm install
 
@@ -22,7 +23,6 @@
 ### 4 รัน Development Server:
 
     เข้าไปที่โฟลเดอร์ client แล้วสั่งรันหน้าเว็บ:
-    npm init -y
     cd client
     npm run dev
 
