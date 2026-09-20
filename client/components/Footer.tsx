@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
         <div>
           <Link href="/" className="flex items-center gap-2 font-mali font-semibold text-xl text-textMain mb-4">
-            <i className="fa-solid fa-paw text-primary"></i> PawMatch
+            <i className="fa-solid fa-paw text-primary"></i> Gohome
           </Link>
           <p className="text-gray-500 mb-4">ระบบจับคู่อาสาสมัครดูแลสัตว์จรจัด<br />เปลี่ยนชีวิตพวกเขาทีละตัว</p>
           <div className="flex gap-4">
@@ -26,13 +26,13 @@ export default function Footer() {
         <div>
           <h4 className="font-mali font-semibold text-lg mb-4">ติดต่อเรา</h4>
           <ul className="space-y-2 text-gray-500">
-            <li><i className="fa-regular fa-envelope mr-2 text-primary"></i> contact@pawmatch.com</li>
+            <li><i className="fa-regular fa-envelope mr-2 text-primary"></i> contact@gohomematch.com</li>
             <li><i className="fa-solid fa-phone mr-2 text-primary"></i> 02-XXX-XXXX</li>
           </ul>
         </div>
       </div>
       <div className="text-center text-gray-400 border-t border-gray-100 pt-8">
-        &copy; 2026 PawMatch Project. All rights reserved.
+        &copy; 2026 GoHome Project. All rights reserved.
       </div>
     </footer>
   );

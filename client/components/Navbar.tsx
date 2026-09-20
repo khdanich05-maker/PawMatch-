@@ -15,7 +15,7 @@ export default function Navbar() {
     <>
       <nav className="w-full px-6 py-4 flex justify-between items-center bg-transparent relative z-20">
         <Link href="/" className="flex items-center gap-2 font-mali font-semibold text-2xl text-textMain hover:text-primary transition">
-          <i className="fa-solid fa-paw text-primary"></i> PawMatch
+          <i className="fa-solid fa-paw text-primary"></i> GoHome
         </Link>
 
         <div className="hidden md:flex gap-8 items-center text-[15px]">
