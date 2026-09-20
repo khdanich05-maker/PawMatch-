@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function CasesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -218,11 +219,14 @@ export default function CasesPage() {
               </div>
 
               <div className="mt-auto pt-4">
-                <button className="w-full font-mali font-semibold bg-gray-200 text-gray-500 py-4 rounded-xl cursor-not-allowed flex justify-center items-center gap-2 transition hover:bg-gray-300" title="กรุณาเข้าสู่ระบบ">
-                  <i className="fa-solid fa-lock"></i> เข้าสู่ระบบเพื่อขอรับเลี้ยง
-                </button>
+                <Link
+                  href="/adoptions/request?animalId=tofu&animalName=%E0%B9%80%E0%B8%95%E0%B9%89%E0%B8%B2%E0%B8%AB%E0%B8%B9%E0%B9%89&animalType=%E0%B8%AA%E0%B8%B8%E0%B8%99%E0%B8%B1%E0%B8%82"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-mali font-semibold text-white transition hover:bg-primaryHover"
+                >
+                  <i className="fa-solid fa-heart"></i> ขอรับเลี้ยงเต้าหู้
+                </Link>
                 <p className="text-center text-xs text-primary mt-3 font-semibold">
-                  * ต้องเป็นสมาชิกและยืนยันตัวตนก่อนเพื่อความปลอดภัยของสัตว์
+                  * เมื่อเชื่อม Supabase ระบบจะตรวจสอบการเข้าสู่ระบบก่อนส่งคำขอ
                 </p>
               </div>
             </div>
