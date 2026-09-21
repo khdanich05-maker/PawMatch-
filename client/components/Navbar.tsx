@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // 👈 เพิ่ม usePathname เข้าไป
 
 interface UserProfile {
   id: string;
-  name: string;
+  name?: string;
+  username?: string;
   email: string;
   role: string;
   avatarUrl?: string | null;
@@ -14,6 +15,7 @@ interface UserProfile {
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname(); // 👈 จุดที่เพิ่ม 1: อ่าน URL ปัจจุบัน
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -27,13 +29,16 @@ export default function Navbar() {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       } catch {
         setUser(null);
       }
     };
     checkAuth();
-  }, []);
+  }, [pathname]); // 👈 จุดที่เพิ่ม 2: ใส่ pathname ลงไป เพื่อให้เช็ค session ซ้ำทุกครั้งที่มีการเปลี่ยนหน้า
+
 
   // 2. ปิด Dropdown เมื่อคลิกนอกพื้นที่
   useEffect(() => {
@@ -66,6 +71,10 @@ export default function Navbar() {
     else document.body.style.overflow = "auto";
   }, [isMenuOpen]);
 
+  // ดึงชื่อที่แสดง (รองรับทั้ง name และ username)
+  const displayName = user?.name || user?.username || "ผู้ใช้งาน";
+  const avatarLetter = displayName.slice(0, 1).toUpperCase();
+
   return (
     <>
       <nav className="w-full px-6 py-4 flex justify-between items-center bg-transparent relative z-20">
@@ -84,39 +93,59 @@ export default function Navbar() {
         {/* Desktop Auth Section */}
         <div className="hidden md:flex gap-4 items-center font-prompt">
           {user ? (
-            // แสดงโปรไฟล์ผู้ใช้เมื่อล็อกอินแล้ว
+            /* แสดงโปรไฟล์ผู้ใช้เมื่อล็อกอินแล้ว */
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border border-stone-200 hover:border-[#E29578] bg-white shadow-sm transition"
               >
-                <div className="w-8 h-8 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30">
-                  {user.name ? user.name.slice(0, 1).toUpperCase() : "🐾"}
+                <div className="w-8 h-8 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30 overflow-hidden">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    avatarLetter
+                  )}
                 </div>
                 <span className="text-xs font-semibold text-stone-700 max-w-[120px] truncate">
-                  {user.name || "ผู้ใช้งาน"}
+                  {displayName}
                 </span>
                 <span className="text-[10px] text-stone-400">▼</span>
               </button>
 
               {/* Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute right-0 top-12 w-52 bg-white rounded-2xl shadow-xl border border-stone-100 py-2 z-50 text-xs text-stone-700">
-                  <div className="px-4 py-2 border-b border-stone-100">
-                    <p className="font-semibold text-stone-800 truncate">{user.name}</p>
+                <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-xl border border-stone-100 py-2 z-50 text-xs text-stone-700">
+                  <div className="px-4 py-2.5 border-b border-stone-100">
+                    <p className="font-semibold text-stone-800 truncate">{displayName}</p>
                     <p className="text-[11px] text-stone-400 truncate">{user.email}</p>
                   </div>
+
+                  {/* 1. กดไปหน้าโปรไฟล์ */}
                   <Link
-                    href={user.role === "admin" || user.role === "shelter" ? "/admin/dashboard" : "/dashboard"}
+                    href="/profile"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-[#FDF0EB]/50 transition"
+                    className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#FDF0EB]/50 transition"
                   >
-                    <span>📊</span> แดชบอร์ดติดตามสถานะ
+                    <span>👤</span> ข้อมูลส่วนตัว (Profile)
                   </Link>
+
+                  {/* 2. เมนูเฉพาะ Admin / Shelter (พาไปหน้าจัดการสัตว์ ไม่พาไปหน้าที่ติด 404) */}
+                  {user.role === "admin" && (
+                    <Link
+                      href="/admin/animals"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-[#C07055] hover:bg-[#FDF0EB]/50 transition font-medium"
+                    >
+                      <span>🐾</span> จัดการข้อมูลสัตว์ (Admin)
+                    </Link>
+                  )}
+
                   <div className="border-t border-stone-100 my-1"></div>
+
+                  {/* 3. ปุ่มออกจากระบบ */}
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 text-red-500 font-medium transition"
+                    className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 hover:bg-red-50 text-red-500 font-medium transition"
                   >
                     <span>🚪</span> ออกจากระบบ
                   </button>
@@ -124,7 +153,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            // แสดงปุ่ม Guest เมื่อยังไม่ล็อกอิน
+            /* แสดงปุ่ม Guest เมื่อยังไม่ล็อกอิน */
             <>
               <Link href="/login" className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700">
                 เข้าสู่ระบบ
@@ -143,7 +172,7 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${isMenuOpen ? "opacity-100 block" : "opacity-0 hidden"}`}
         onClick={() => setIsMenuOpen(false)}
       ></div>
@@ -177,22 +206,34 @@ export default function Navbar() {
         <div className="mt-auto p-6 border-t border-stone-100 font-prompt">
           {user ? (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 bg-stone-50 p-3 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30">
-                  {user.name ? user.name.slice(0, 1).toUpperCase() : "🐾"}
+              <Link
+                href="/profile"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 bg-stone-50 hover:bg-[#FDF0EB]/60 p-3 rounded-2xl transition"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30 overflow-hidden">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    avatarLetter
+                  )}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="font-semibold text-xs text-stone-800 truncate">{user.name}</p>
+                  <p className="font-semibold text-xs text-stone-800 truncate">{displayName}</p>
                   <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
                 </div>
-              </div>
-              <Link
-                href={user.role === "admin" || user.role === "shelter" ? "/admin/dashboard" : "/dashboard"}
-                onClick={() => setIsMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-semibold hover:bg-stone-50 transition"
-              >
-                ไปที่แดชบอร์ด
               </Link>
+
+              {user.role === "admin" && (
+                <Link
+                  href="/admin/animals"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl border border-[#E29578] text-[#C07055] text-xs font-semibold hover:bg-[#FDF0EB] transition"
+                >
+                  จัดการข้อมูลสัตว์ (Admin)
+                </Link>
+              )}
+
               <button
                 onClick={handleLogout}
                 className="w-full text-center py-2.5 rounded-xl bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition"
