@@ -25,7 +25,7 @@ export default function Home() {
 
         <div className="flex-1 flex justify-center w-full">
           <div className="w-full max-w-md h-80 bg-bgAccent rounded-3xl flex items-center justify-center text-primaryHover font-mali font-semibold shadow-inner overflow-hidden">
-             <img src="https://img.magnific.com/free-photo/front-view-adorable-shiba-inu-dog_23-2149457807.jpg?semt=ais_hybrid&w=740&q=80" alt="รูปภาพสัตว์จรจัด" className="w-full h-full object-cover rounded-3xl" />
+            <img src="https://img.magnific.com/free-photo/front-view-adorable-shiba-inu-dog_23-2149457807.jpg?semt=ais_hybrid&w=740&q=80" alt="รูปภาพสัตว์จรจัด" className="w-full h-full object-cover rounded-3xl" />
           </div>
         </div>
       </section>
@@ -93,19 +93,19 @@ export default function Home() {
 
           {/* Placeholder Cards */}
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col opacity-50">
-             <div className="h-48 bg-bgAccent"></div>
-             <div className="p-5"><h3 className="bg-gray-200 h-6 w-1/2 rounded mb-4"></h3><div className="mt-auto w-full bg-gray-200 h-10 rounded-xl"></div></div>
+            <div className="h-48 bg-bgAccent"></div>
+            <div className="p-5"><h3 className="bg-gray-200 h-6 w-1/2 rounded mb-4"></h3><div className="mt-auto w-full bg-gray-200 h-10 rounded-xl"></div></div>
           </div>
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col opacity-50">
-             <div className="h-48 bg-bgAccent"></div>
-             <div className="p-5"><h3 className="bg-gray-200 h-6 w-1/2 rounded mb-4"></h3><div className="mt-auto w-full bg-gray-200 h-10 rounded-xl"></div></div>
+            <div className="h-48 bg-bgAccent"></div>
+            <div className="p-5"><h3 className="bg-gray-200 h-6 w-1/2 rounded mb-4"></h3><div className="mt-auto w-full bg-gray-200 h-10 rounded-xl"></div></div>
           </div>
         </div>
-        
+
         <div className="mt-6 text-center sm:hidden">
-            <Link href="/cases" className="font-mali font-semibold text-primary hover:text-primaryHover transition inline-flex items-center gap-1">
-                ดูทั้งหมด <i className="fa-solid fa-arrow-right text-sm"></i>
-            </Link>
+          <Link href="/cases" className="font-mali font-semibold text-primary hover:text-primaryHover transition inline-flex items-center gap-1">
+            ดูทั้งหมด <i className="fa-solid fa-arrow-right text-sm"></i>
+          </Link>
         </div>
       </section>
 
