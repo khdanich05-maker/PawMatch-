@@ -72,14 +72,21 @@ function LoginForm() {
 
             showToast("success", "ยินดีต้อนรับเข้าสู่ระบบ GoHome!");
 
+            // window.setTimeout(() => {
+            //     if (data.user?.role === "admin" || data.user?.role === "shelter") {
+            //         router.push("/admin/dashboard");
+            //     } else {
+            //         router.push(data.redirectTo || "/dashboard");
+            //     }
+            //     router.refresh();
+            // }, 800);
             window.setTimeout(() => {
-                if (data.user?.role === "admin" || data.user?.role === "shelter") {
-                    router.push("/admin/dashboard");
-                } else {
-                    router.push(data.redirectTo || "/dashboard");
-                }
+                // ส่งตรงไปยังหน้าแรก (Landing Page) ทันที
+                router.push(data.redirectTo || "/");
                 router.refresh();
             }, 800);
+
+
         } catch {
             showToast("error", "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
             setIsLoading(false);
