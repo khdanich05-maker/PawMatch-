@@ -1,55 +1,89 @@
-import { NextResponse } from 'next/server';
-import { supabase } from "@/lib/supabase";
+// app/api/auth/register/route.ts
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: Request) {
   try {
-    const { fullName, email, phone, password } = await request.json();
+    const body = await request.json();
+    const username = String(body.username ?? "").trim();
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const phone = String(body.phone ?? "").trim();
+    const password = String(body.password ?? "");
 
-    if (!fullName || !email || !password) {
+    // 1. Validation เบื้องต้น
+    if (!username || !email || !password) {
       return NextResponse.json(
-        { message: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' },
+        { error: "กรุณากรอกชื่อผู้ใช้ อีเมล และรหัสผ่านให้ครบถ้วน" },
         { status: 400 }
       );
     }
 
-    // 1. Create User in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // auto-confirm สำหรับระบบ prototype
-    });
-
-    if (authError || !authData.user) {
+    if (password.length < 6) {
       return NextResponse.json(
-        { message: authError?.message || 'ไม่สามารถลงทะเบียนได้' },
+        { error: "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร" },
         { status: 400 }
       );
     }
 
-    // 2. Insert Profile Data
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: authData.user.id,
-      full_name: fullName,
-      phone: phone || null,
-      role: 'adopter',
-    });
+    // 2. เช็คว่ามี username หรือ email ซ้ำในระบบหรือไม่
+    const { data: existingUser } = await supabaseAdmin
+      .from("users")
+      .select("user_id, email, username")
+      .or(`email.eq.${email},username.eq.${username}`)
+      .maybeSingle();
 
-    if (profileError) {
-      // Rollback user creation if profile creation fails
-      await supabase.auth.admin.deleteUser(authData.user.id);
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return NextResponse.json(
+          { error: "อีเมลนี้มีผู้ใช้งานในระบบแล้ว" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
-        { message: 'เกิดข้อผิดพลาดในการบันทึกโปรไฟล์' },
+        { error: "ชื่อผู้ใช้ (Username) นี้ถูกใช้งานแล้ว" },
+        { status: 409 }
+      );
+    }
+
+    // 3. Hash รหัสผ่านด้วย bcryptjs
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // 4. บันทึกลงตาราง public.users
+    const { data: newUser, error: insertError } = await supabaseAdmin
+      .from("users")
+      .insert({
+        username,
+        email,
+        phone: phone || null,
+        password_hash: passwordHash,
+        role: "user",
+      })
+      .select("user_id, username, email, role")
+      .single();
+
+    if (insertError || !newUser) {
+      console.error("Insert user error:", insertError);
+      return NextResponse.json(
+        { error: "ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่อีกครั้ง" },
         { status: 500 }
       );
     }
 
+    return NextResponse.json({
+      message: "ลงทะเบียนสมาชิกสำเร็จ",
+      user: {
+        id: newUser.user_id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
+    });
+  } catch (error) {
+    console.error("Register route error:", error);
     return NextResponse.json(
-      { message: 'ลงทะเบียนสำเร็จเรียบร้อยแล้ว' },
-      { status: 201 }
-    );
-  } catch {
-    return NextResponse.json(
-      { message: 'เกิดข้อผิดพลาดของระบบเซิร์ฟเวอร์' },
+      { error: "เกิดข้อผิดพลาดของระบบเซิร์ฟเวอร์" },
       { status: 500 }
     );
   }
