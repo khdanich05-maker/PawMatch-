@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PawMatch - จับคู่ใจ เพื่อสัตว์จร",
+  title: "GoHome - จับคู่ใจ เพื่อสัตว์จร",
   description: "ระบบจับคู่อาสาสมัครกับสัตว์จรจัดที่ต้องการความช่วยเหลือ",
 };
 
