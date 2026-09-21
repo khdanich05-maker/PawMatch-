@@ -98,30 +98,25 @@ export default function ReportPage() {
     setSubmitting(true);
 
     try {
-      // 1. Upload image to Supabase Storage
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-      const filePath = `reports/${fileName}`;
+      // 1. Upload image via Next.js Server API (bypasses Supabase Storage RLS)
+      const formData = new FormData();
+      formData.append("file", imageFile);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("stray-reports")
-        .upload(filePath, imageFile);
+      const uploadRes = await fetch("/api/reports/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error("ไม่สามารถอัปโหลดรูปภาพได้: " + uploadError.message);
+      const uploadResult = await uploadRes.json();
+      if (!uploadRes.ok || uploadResult.error) {
+        throw new Error(uploadResult.error || "อัปโหลดรูปภาพไม่สำเร็จ");
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("stray-reports")
-        .getPublicUrl(filePath);
+      const imageUrl = uploadResult.imageUrl;
 
-      const imageUrl = urlData.publicUrl;
-
-      // 2. Prepare user_id (fallback to existing test user or anonymous id if not logged in)
+      // 2. Prepare user_id (fallback to existing test user in database if not logged in)
       const finalUserId =
-        currentUser?.id || "061710a1-673f-4d60-8e1d-285429a6b326";
+        currentUser?.id || "8ba0926b-4fce-40c7-ad0c-19d5ab9e9c64";
 
       const finalStatus =
         healthStatus === "อื่นๆ" && customStatus.trim()
