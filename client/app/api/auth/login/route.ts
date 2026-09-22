@@ -1,6 +1,9 @@
+// app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import bcrypt from "bcryptjs";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createSession } from "@/lib/session";
+import { User } from "@/types/user";
 
 export async function POST(request: Request) {
   try {
@@ -13,53 +16,61 @@ export async function POST(request: Request) {
         { message: "กรุณากรอกอีเมลและรหัสผ่าน" },
         { status: 400 }
       );
-    } 
+    }
 
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({ email, password });
+    // 1. ค้นหาผู้ใช้จากตาราง public.users (ใช้ ilike เพื่อให้ค้นหาได้ทั้ง Ball และ ball)
+    const identifier = String(body.username ?? body.email ?? "").trim();
 
-    if (authError || !authData.user) {
-      console.error("Authentication error:", authError);
+    const { data: user, error: userError } = await supabaseAdmin
+      .from("users")
+      .select("user_id, role, username, password_hash, email, phone")
+      .or(`email.ilike.${identifier},username.ilike.${identifier}`)
+      .maybeSingle<User>();
+
+    if (userError || !user || !user.password_hash) {
       return NextResponse.json(
         { message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" },
         { status: 401 }
       );
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, full_name, role, avatar_url")
-      .eq("id", authData.user.id)
-      .single();
-
-    if (profileError || !profile) {
-      console.error("Profile query error:", profileError);
+    // 2. ตรวจสอบรหัสผ่านด้วย bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
       return NextResponse.json(
-        { message: "ไม่พบข้อมูลโปรไฟล์ผู้ใช้งาน" },
-        { status: 404 }
+        { message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" },
+        { status: 401 }
       );
     }
 
+    // 3. สร้าง Session Cookie (pawmatch_session)
     await createSession({
-      userId: profile.id,
-      email: authData.user.email ?? email,
-      role: profile.role,
-      name: profile.full_name ?? "",
+      userId: user.user_id,
+      email: user.email ?? email,
+      role: user.role,
+      name: user.username,
     });
+
+    // 4. กำหนดเส้นทาง Redirect ตาม Role ของผู้ใช้งาน
+    // const redirectTo =
+    //   user.role === "admin" || user.role === "shelter"
+    //     ? "/admin/dashboard"
+    //     : "/dashboard";
+    // 4. กำหนดเส้นทาง Redirect ไปยังหน้าแรก (Landing Page)
+    const redirectTo = "/";
 
     return NextResponse.json({
       message: "เข้าสู่ระบบสำเร็จ",
-      role: profile.role,
+      redirectTo,
       user: {
-        id: profile.id,
-        name: profile.full_name,
-        email: authData.user.email ?? email,
-        avatarUrl: profile.avatar_url,
+        id: user.user_id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
-    console.error("Login route error:", error);
-
+    console.error("Login Error:", error);
     return NextResponse.json(
       { message: "เกิดข้อผิดพลาดของระบบเซิร์ฟเวอร์" },
       { status: 500 }

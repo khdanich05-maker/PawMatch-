@@ -1,12 +1,14 @@
+// lib/session.ts
 import "server-only";
 
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { UserRole } from "@/types/user";
 
 export interface SessionData {
   userId: string;
   email: string;
-  role: string;
+  role: UserRole; // 'user' | 'shelter' | 'admin'
   name: string;
 }
 
@@ -15,7 +17,7 @@ export type Session = SessionData & {
 };
 
 const SESSION_COOKIE_NAME = "pawmatch_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 วัน
 
 function getSessionSecret() {
   const secret =
@@ -40,11 +42,11 @@ function encodeSession(session: Session) {
 }
 
 function decodeSession(value: string): Session | null {
-  const [payload, signature] = value.split(".");
+  const parts = value.split(".");
+  if (parts.length !== 2) return null;
 
-  if (!payload || !signature) {
-    return null;
-  }
+  const [payload, signature] = parts;
+  if (!payload || !signature) return null;
 
   const expectedSignature = sign(payload);
   const actual = Buffer.from(signature);
@@ -74,7 +76,7 @@ function decodeSession(value: string): Session | null {
 
 export async function createSession(data: SessionData) {
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
-  const session = {
+  const session: Session = {
     ...data,
     expiresAt: expiresAt.toISOString(),
   };
@@ -86,6 +88,7 @@ export async function createSession(data: SessionData) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
     expires: expiresAt,
   });
 
@@ -105,6 +108,12 @@ export async function getSession() {
 
 export async function deleteSession() {
   const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.set(SESSION_COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
 }
-
