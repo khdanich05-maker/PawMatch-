@@ -3,35 +3,40 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { UserRole } from "@/types/user";
 
-export interface SessionUser {
+export interface SessionData {
   userId: string;
-  username: string;
-  email: string | null;
-  role: string;
-  phone?: string | null;
+  email: string;
+  role: UserRole; // 'user' | 'shelter' | 'admin'
+  name: string;
 }
 
-export type Session = SessionUser & {
+export type Session = SessionData & {
   expiresAt: string;
 };
 
 const SESSION_COOKIE_NAME = "pawmatch_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 วัน
 
-function getSessionSecret(): string {
-  const secret = process.env.SESSION_SECRET;
+function getSessionSecret() {
+  const secret =
+    process.env.SESSION_SECRET ??
+    process.env.AUTH_SECRET ??
+    process.env.NEXTAUTH_SECRET;
+
   if (!secret && process.env.NODE_ENV === "production") {
-    throw new Error("SESSION_SECRET is required in production environment.");
+    throw new Error("SESSION_SECRET is required to create signed sessions.");
   }
-  return secret ?? "pawmatch-secret-dev-key-change-in-env";
+
+  return secret ?? "pawmatch-development-session-secret";
 }
 
-function sign(value: string): string {
+function sign(value: string) {
   return createHmac("sha256", getSessionSecret()).update(value).digest("base64url");
 }
 
-function encodeSession(session: Session): string {
+function encodeSession(session: Session) {
   const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
   return `${payload}.${sign(payload)}`;
 }
@@ -55,7 +60,7 @@ function decodeSession(value: string): Session | null {
     const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Session;
     const expiresAt = new Date(session.expiresAt).getTime();
 
-    if (!session.userId || !session.role || Number.isNaN(expiresAt)) {
+    if (!session.userId || !session.email || !session.role || Number.isNaN(expiresAt)) {
       return null;
     }
 
@@ -69,7 +74,7 @@ function decodeSession(value: string): Session | null {
   }
 }
 
-export async function createSession(data: SessionUser) {
+export async function createSession(data: SessionData) {
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
   const session: Session = {
     ...data,
@@ -77,6 +82,7 @@ export async function createSession(data: SessionUser) {
   };
 
   const cookieStore = await cookies();
+
   cookieStore.set(SESSION_COOKIE_NAME, encodeSession(session), {
     httpOnly: true,
     sameSite: "lax",
@@ -89,10 +95,14 @@ export async function createSession(data: SessionUser) {
   return session;
 }
 
-export async function getSession(): Promise<Session | null> {
+export async function getSession() {
   const cookieStore = await cookies();
   const cookie = cookieStore.get(SESSION_COOKIE_NAME);
-  if (!cookie) return null;
+
+  if (!cookie) {
+    return null;
+  }
+
   return decodeSession(cookie.value);
 }
 

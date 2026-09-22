@@ -13,8 +13,8 @@ export async function GET() {
     return NextResponse.json({
       user: {
         id: session.userId,
-        username: (session as any).username || (session as any).name || "",
-        name: (session as any).name || (session as any).username || "",
+        username: session.name || (session as any).username || "",
+        name: session.name || (session as any).username || "",
         email: session.email,
         role: session.role,
       },
