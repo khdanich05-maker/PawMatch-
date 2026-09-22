@@ -15,7 +15,7 @@ type Applicant = {
 type Filters = { ownHouse: boolean; budget: boolean; time: boolean; noPets: boolean };
 const emptyFilters: Filters = { ownHouse: false, budget: false, time: false, noPets: false };
 const statusLabels: Record<Status, string> = { pending: "รอการอนุมัติ", approved: "อนุมัติแล้ว", rejected: "ไม่อนุมัติ" };
-const animalCases: AnimalCase[] = [
+const defaultAnimalCases: AnimalCase[] = [
   { id: "mali", name: "น้องมะลิ", species: "หมาพันธุ์ทาง", gender: "เพศเมีย", image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=200&q=80" },
   { id: "cola", name: "น้องโคล่า", species: "สุนัข", gender: "เพศผู้", image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=200&q=80" },
 ];
@@ -59,6 +59,8 @@ function Modal({ children, onClose }: { children: ReactNode; onClose: () => void
 
 export default function AdminAdoptionsPage() {
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
+  const [animalCases, setAnimalCases] = useState<AnimalCase[]>(defaultAnimalCases);
+  const [dataError, setDataError] = useState("");
   const [animalId, setAnimalId] = useState<string | null>(null);
   const [animalSearch, setAnimalSearch] = useState("");
   const [sort, setSort] = useState("oldest");
@@ -95,20 +97,38 @@ export default function AdminAdoptionsPage() {
   const visibleAnimals = animalCases.filter((animal) => animal.name.includes(animalSearch.trim())).sort((a,b) => sort === "oldest" ? oldestRequest(a.id) - oldestRequest(b.id) : oldestRequest(b.id) - oldestRequest(a.id));
 
   useEffect(() => { sectionRef.current?.focus({ preventScroll: true }); }, [animalId]);
+  useEffect(() => {
+    fetch("/api/admin/adoptions").then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      const requests = data.requests || [];
+      const nextAnimals = new Map<string, AnimalCase>();
+      const nextApplicants = requests.map((item: any) => {
+        const animal = Array.isArray(item.animals) ? item.animals[0] : item.animals;
+        const user = Array.isArray(item.users) ? item.users[0] : item.users;
+        const image = Array.isArray(animal?.image_url) ? animal.image_url[0] : animal?.image_url;
+        nextAnimals.set(item.animal_id, { id: item.animal_id, name: animal?.name || "สัตว์", species: animal?.species || "", gender: animal?.gender || "", image: image || "" });
+        return { id:item.match_id, animalId:item.animal_id, name:user?.full_name || user?.username || "ไม่ระบุชื่อ", phone:user?.phone || "-", submittedAt:item.start_date, accommodation:user?.accommodation_type || "-", ownHouse:Boolean(user?.pet_permission), budget:Number(item.monthly_budget || 0), careTime:item.care_time || "-", hasTime:(item.care_time || "").includes("4") || (item.care_time || "").includes("6"), petCount:Number(user?.animal_count || 0), familyMembers:Number(item.family_members || 0), reason:item.adoption_reason || "-", status:item.match_status === "อนุมัติ" ? "approved" : item.match_status === "ปฏิเสธ" ? "rejected" : "pending", rejectionReason:item.rejection_reason || undefined } as Applicant;
+      });
+      setAnimalCases(Array.from(nextAnimals.values()));
+      setApplicants(nextApplicants);
+    }).catch((error: Error) => { setDataError(error.message || "ไม่สามารถอ่านคำขอได้"); setAnimalCases([]); setApplicants([]); });
+  }, []);
   function openAnimal(id: string) { setAnimalId(id); resetFilters(); setNotice(""); }
   function resetFilters() { setSearch(""); setFilters(emptyFilters); setStatusFilter("pending"); }
   function openApplicant(id: string, nextMode: typeof mode) { setSelectedId(id); setMode(nextMode); setReason(""); }
   function closeModal() { setSelectedId(null); setReason(""); }
-  function confirmDecision(event: FormEvent<HTMLFormElement>) {
+  async function confirmDecision(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected || selected.status !== "pending" || mode === "detail") return;
     if (mode === "approved" && approvedForAnimal(selected.animalId)) return;
     if (mode === "rejected" && !reason.trim()) return;
     const decision = mode;
-    setApplicants((previous) => previous.map((applicant) => applicant.id === selected.id
-      ? { ...applicant, status: decision, rejectionReason: decision === "rejected" ? reason.trim() : undefined }
-      : applicant));
-    setNotice(`ทดลอง${decision === "approved" ? "อนุมัติ" : "ไม่อนุมัติ"}คำขอของ ${selected.name} แล้ว — ดูผลได้ในตัวกรองสถานะ`);
+    const response = await fetch("/api/admin/adoptions", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ matchId:selected.id, action:decision === "approved" ? "approve" : "reject", reason:reason.trim() }) });
+    const data = await response.json();
+    if (!response.ok) { setNotice(data.error || "บันทึกผลไม่สำเร็จ"); return; }
+    setApplicants((previous) => previous.map((applicant) => applicant.id === selected.id ? { ...applicant, status: decision, rejectionReason: decision === "rejected" ? reason.trim() : undefined } : applicant));
+    setNotice(`${decision === "approved" ? "อนุมัติ" : "ไม่อนุมัติ"}คำขอของ ${selected.name} แล้ว`);
     closeModal();
   }
 
@@ -125,7 +145,7 @@ export default function AdminAdoptionsPage() {
             {activeAnimal && <button type="button" className="back-button" onClick={() => setAnimalId(null)}>← กลับรายการสัตว์</button>}
           </div>
         </header>
-        <div className="demo-banner"><span>💡 โหมดทดลอง · ข้อมูลสมมติ ไม่บันทึกฐานข้อมูล · รีเฟรชเพื่อเริ่มใหม่</span></div>
+        {dataError ? <div className="demo-banner error-banner"><span>{dataError}</span></div> : <div className="demo-banner"><span>💡 ข้อมูลคำขอจาก Supabase · การอนุมัติและไม่อนุมัติจะบันทึกผลจริง</span></div>}
         {notice && <p className="notice" role="status">{notice}</p>}
         {!activeAnimal ? <>
           <div className="summary-grid">

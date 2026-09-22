@@ -1,117 +1,21 @@
-const profileMenus = [
-  {
-    icon: "fa-user-pen",
-    title: "แก้ไขโปรไฟล์",
-    description: "จัดการข้อมูลส่วนตัว เบอร์โทรศัพท์ และที่พักของคุณ",
-  },
-  {
-    icon: "fa-paw",
-    title: "อัปเดตข้อมูลสัตว์เลี้ยง",
-    description: "บันทึกการดูแล สุขภาพ และรูปภาพสัตว์ที่คุณรับเลี้ยง",
-  },
-  {
-    icon: "fa-heart",
-    title: "สถานะคำขอรับเลี้ยง",
-    description: "ติดตามคำขอรับเลี้ยงและผลการพิจารณาจากเจ้าหน้าที่",
-  },
-  {
-    icon: "fa-location-dot",
-    title: "สถานะแจ้งพบสัตว์จร",
-    description: "ติดตามความคืบหน้าของรายงานที่คุณแจ้งไว้",
-  },
-];
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
+type Profile = Record<string, string | number | boolean | null | undefined>;
 export default function ProfilePage() {
-  return (
-    <main className="min-h-screen bg-[#FCFAF8] px-5 py-10 text-[#44403C] sm:py-14">
-      <div className="mx-auto max-w-4xl">
-        {/* ส่วนหัวหน้า */}
-        <header className="mb-8">
-          <p className="mb-2 text-sm font-medium text-[#C07055]">
-            บัญชีของฉัน
-          </p>
-          <h1 className="font-mali text-3xl font-semibold sm:text-4xl">
-            โปรไฟล์ของฉัน
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-[#78716C]">
-            จัดการข้อมูลส่วนตัวและติดตามการช่วยเหลือสัตว์ของคุณ
-          </p>
-        </header>
-
-        {/* ข้อมูลผู้ใช้ตัวอย่าง */}
-        <section
-          aria-label="ข้อมูลผู้ใช้"
-          className="mb-8 flex items-center gap-5 rounded-3xl border
-            border-[#F1DDD3] bg-white p-6 shadow-sm sm:p-8"
-        >
-          <div
-            aria-hidden="true"
-            className="flex h-20 w-20 shrink-0 items-center justify-center
-              rounded-full bg-[#FDF0EB] text-3xl text-[#C07055]"
-          >
-            <i className="fa-solid fa-user" />
-          </div>
-
-          <div className="min-w-0">
-            <h2 className="font-mali text-xl font-semibold sm:text-2xl">
-              ชื่อผู้ใช้งาน
-            </h2>
-            <p className="mt-1 text-sm text-[#78716C]">
-              ข้อมูลตัวอย่างสำหรับออกแบบหน้าโปรไฟล์
-            </p>
-            <span
-              className="mt-3 inline-block rounded-full bg-[#FDF0EB]
-                px-3 py-1 text-xs text-[#9B513A]"
-            >
-              ผู้ใช้งานทั่วไป
-            </span>
-          </div>
-        </section>
-
-        {/* เมนูของผู้ใช้ */}
-        <section aria-labelledby="profile-menu-heading">
-          <h2
-            id="profile-menu-heading"
-            className="mb-4 font-mali text-xl font-semibold"
-          >
-            เมนูของฉัน
-          </h2>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {profileMenus.map((menu) => (
-              <article
-                key={menu.title}
-                className="flex flex-col rounded-3xl border
-                  border-[#E7E5E4] bg-white p-6 shadow-sm"
-              >
-                <div
-                  aria-hidden="true"
-                  className="mb-5 flex h-12 w-12 items-center justify-center
-                    rounded-2xl bg-[#FDF0EB] text-xl text-[#C07055]"
-                >
-                  <i className={`fa-solid ${menu.icon}`} />
-                </div>
-
-                <h3 className="font-mali text-xl font-semibold">
-                  {menu.title}
-                </h3>
-                <p className="mb-6 mt-2 text-sm leading-7 text-[#78716C]">
-                  {menu.description}
-                </p>
-
-                <button
-                  type="button"
-                  disabled
-                  className="mt-auto w-full cursor-not-allowed rounded-xl
-                    bg-[#F5F5F4] px-4 py-3 text-sm text-[#78716C]"
-                >
-                  เร็ว ๆ นี้
-                </button>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+  const [profile, setProfile] = useState<Profile>({}); const [loading, setLoading] = useState(true); const [editing, setEditing] = useState(false); const [message, setMessage] = useState("");
+  useEffect(() => { fetch("/api/profile").then(async r=>{const d=await r.json(); if(!r.ok) throw new Error(d.error); setProfile(d.profile)}).catch(e=>setMessage(e.message || "กรุณาเข้าสู่ระบบ")).finally(()=>setLoading(false)); },[]);
+  const change=(key:string,value:string|boolean)=>setProfile(p=>({...p,[key]:value}));
+  async function save(){setMessage(""); const r=await fetch("/api/profile",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fullName:profile.full_name,phone:profile.phone,dateOfBirth:profile.date_of_birth,accommodation:profile.accommodation_type,animalCount:profile.animal_count,address:profile.address,province:profile.province,petPermission:profile.pet_permission,residenceNote:profile.residence_note})});const d=await r.json();if(!r.ok){setMessage(d.error);return;}setProfile(d.profile);setEditing(false);setMessage("บันทึกข้อมูลโปรไฟล์แล้ว");}
+  if(loading) return <main className="p-16 text-center text-gray-500">กำลังโหลดโปรไฟล์…</main>;
+  if(!profile.user_id) return <main className="p-16 text-center"><p>{message}</p><Link className="text-primary underline" href="/login">เข้าสู่ระบบ</Link></main>;
+  return <main className="min-h-screen bg-[#FCFAF8] px-5 py-10 text-[#44403C]"><div className="mx-auto max-w-4xl"><p className="text-sm text-[#C07055]">บัญชีของฉัน</p><h1 className="font-mali text-4xl font-semibold">โปรไฟล์ของฉัน</h1><p className="mt-2 text-sm text-[#78716C]">ข้อมูลที่ใช้ในแบบฟอร์มขอรับเลี้ยงจะอัปเดตที่นี่อัตโนมัติ</p>
+    <section className="mt-8 rounded-3xl border border-[#F1DDD3] bg-white p-6 shadow-sm"><div className="flex items-center gap-4"><div className="grid h-16 w-16 place-items-center rounded-full bg-[#FDF0EB] text-2xl text-[#C07055]"><i className="fa-solid fa-user"/></div><div><h2 className="font-mali text-2xl">{String(profile.full_name || profile.username)}</h2><p className="text-sm text-[#78716C]">{String(profile.email || "")}</p><span className="text-xs text-[#C07055]">{profile.role === "user" ? "ผู้ใช้งานทั่วไป" : String(profile.role)}</span></div></div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">{editing ? <><label>ชื่อ-นามสกุล<input className="input" value={String(profile.full_name||"")} onChange={e=>change("full_name",e.target.value)}/></label><label>เบอร์โทรศัพท์<input className="input" value={String(profile.phone||"")} onChange={e=>change("phone",e.target.value)}/></label><label>วันเกิด<input className="input" type="date" value={String(profile.date_of_birth||"")} onChange={e=>change("date_of_birth",e.target.value)}/></label><label>ลักษณะที่พัก<input className="input" value={String(profile.accommodation_type||"")} onChange={e=>change("accommodation_type",e.target.value)}/></label><label>ที่อยู่โดยละเอียด<input className="input" value={String(profile.address||"")} onChange={e=>change("address",e.target.value)}/></label><label>จังหวัด<input className="input" value={String(profile.province||"")} onChange={e=>change("province",e.target.value)}/></label><label>สัตว์เลี้ยงที่มีอยู่<input className="input" type="number" value={String(profile.animal_count??"")} onChange={e=>change("animal_count",e.target.value)}/></label><label className="flex items-center gap-2 pt-6"><input type="checkbox" checked={Boolean(profile.pet_permission)} onChange={e=>change("pet_permission",e.target.checked)}/> ที่พักอนุญาตให้เลี้ยงสัตว์</label><label className="sm:col-span-2">รายละเอียดที่พัก<textarea className="input" value={String(profile.residence_note||"")} onChange={e=>change("residence_note",e.target.value)}/></label></> : <><Info label="เบอร์โทรศัพท์" value={profile.phone}/><Info label="ที่อยู่" value={[profile.address,profile.province].filter(Boolean).join(" · ")}/><Info label="ที่พัก" value={profile.accommodation_type}/><Info label="สัตว์เลี้ยงที่มีอยู่" value={profile.animal_count === null || profile.animal_count===undefined ? "-" : String(profile.animal_count)+" ตัว"}/></>}</div>
+      <div className="mt-6 flex gap-3">{editing?<><button className="button" onClick={save}>บันทึกข้อมูล</button><button className="button bg-stone-100 text-stone-700" onClick={()=>setEditing(false)}>ยกเลิก</button></>:<button className="button" onClick={()=>setEditing(true)}>แก้ไขโปรไฟล์</button>}</div>{message&&<p className="mt-3 text-sm text-[#C07055]">{message}</p>}</section>
+    <section className="mt-8 grid gap-5 sm:grid-cols-2"><Card icon="fa-heart" title="สถานะคำขอรับเลี้ยง" text="ติดตามผลคำขอและนัดหมายรับน้อง" href="/adoption-requests"/><Card icon="fa-paw" title="อัปเดตข้อมูลสัตว์เลี้ยง" text="เร็ว ๆ นี้" href="#"/></section>
+  </div></main>;
 }
+function Info({label,value}:{label:string;value:unknown}){return <div className="rounded-2xl bg-[#FCFAF8] p-4"><p className="text-xs text-[#78716C]">{label}</p><p className="mt-1 text-sm">{String(value||"-")}</p></div>}
+function Card({icon,title,text,href}:{icon:string;title:string;text:string;href:string}){return <Link href={href} className="rounded-3xl border border-[#E7E5E4] bg-white p-6 shadow-sm"><i className={"fa-solid "+icon+" text-xl text-[#C07055]"}/><h2 className="mt-4 font-mali text-xl">{title}</h2><p className="mt-2 text-sm text-[#78716C]">{text}</p></Link>}

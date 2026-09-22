@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
 import { THAI_PROVINCES } from "@/constants/provinces";
 import AdoptionRequestModal from "@/components/adoptions/AdoptionRequestModal";
 
 export default function CasesPage() {
-
+  const router = useRouter();
+  const [sessionRole, setSessionRole] = useState<string | null>(null);
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [adoptionAnimal, setAdoptionAnimal] = useState<Animal | null>(null);
   // ย้ายมาวางไว้ตรงนี้
@@ -100,6 +102,10 @@ export default function CasesPage() {
     fetchAnimals();
   }, [filterSpecies, filterGender, filterAge, filterProvince, filterColor]);
 
+  useEffect(() => {
+    fetch("/api/auth/me").then((response) => response.json()).then((data) => setSessionRole(data.user?.role ?? null)).catch(() => setSessionRole(null));
+  }, []);
+
   const handleResetFilter = () => {
     setFilterSpecies("all");
     setFilterGender("all");
@@ -117,6 +123,13 @@ export default function CasesPage() {
   const closeModal = () => {
     setSelectedAnimal(null);
     document.body.style.overflow = "auto";
+  };
+
+  const startAdoption = (animal: Animal) => {
+    if (!sessionRole) { router.push("/login?next=/cases"); return; }
+    if (sessionRole !== "user") { window.alert("บัญชีเจ้าหน้าที่ไม่สามารถส่งคำขอรับเลี้ยงได้"); return; }
+    closeModal();
+    setAdoptionAnimal(animal);
   };
 
   const getDaysInShelter = (dateString?: string) => {
@@ -514,15 +527,11 @@ export default function CasesPage() {
               <div className="mt-auto pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    const animal = selectedAnimal;
-                    closeModal();
-                    setAdoptionAnimal(animal);
-                  }}
+                  onClick={() => startAdoption(selectedAnimal)}
                   className="w-full font-mali font-semibold bg-primary text-white hover:bg-primaryHover py-3 rounded-xl transition flex justify-center items-center gap-2"
                 >
                   <i className="fa-solid fa-heart" aria-hidden="true"></i>
-                  ทดลองกรอกคำขอรับเลี้ยง
+                  {!sessionRole ? "เข้าสู่ระบบเพื่อขอรับเลี้ยง" : sessionRole === "user" ? "ขอรับเลี้ยงน้อง" : "บัญชีเจ้าหน้าที่"}
                 </button>
               </div>
             </div>

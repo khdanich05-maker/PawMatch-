@@ -3,17 +3,18 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Animal } from "@/types/animal";
+import { THAI_PROVINCES } from "@/constants/provinces";
 
-type Props = { animal: Animal; onClose: () => void };
+type Props = { animal: Animal; onClose: () => void; onSubmitted?: () => void };
 const initialForm = {
   fullName: "", nickname: "", dateOfBirth: "", phone: "",
-  accommodation: "", familyMembers: "", animalCount: "",
+  accommodation: "", address: "", province: "", petPermission: false, residenceNote: "", familyMembers: "", animalCount: "0",
   careTime: "", budget: "", reason: "",
 };
 type Field = keyof typeof initialForm;
 const titles = ["แนะนำตัวกันหน่อย 👋", "บ้านของน้อง 🏡", "ความพร้อมในการดูแล 💛"];
 
-export default function AdoptionRequestModal({ animal, onClose }: Props) {
+export default function AdoptionRequestModal({ animal, onClose, onSubmitted }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,9 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState("");
   const [imageFailed, setImageFailed] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showResidenceNote, setShowResidenceNote] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -34,11 +38,21 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
   }, []);
 
   useEffect(() => {
+    fetch("/api/profile").then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      const profile = data.profile;
+      setForm((previous) => ({ ...previous, fullName: profile.full_name || "", dateOfBirth: profile.date_of_birth || "", phone: profile.phone || "", accommodation: profile.accommodation_type || "", address: profile.address || "", province: profile.province || "", petPermission: Boolean(profile.pet_permission), residenceNote: profile.residence_note || "", animalCount: profile.animal_count?.toString() ?? "0" }));
+      setShowResidenceNote(Boolean(profile.residence_note));
+    }).catch((error: Error) => setMessage(error.message || "โหลดข้อมูลโปรไฟล์ไม่สำเร็จ")).finally(() => setLoadingProfile(false));
+  }, []);
+
+  useEffect(() => {
     contentRef.current?.scrollTo({ top: 0 });
     headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
-  function update(field: Field, value: string) {
+  function update(field: Field, value: string | boolean) {
     setForm((previous) => ({ ...previous, [field]: value }));
     setMessage("");
   }
@@ -48,10 +62,19 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
     if (!hasChanges || window.confirm("ปิดแบบฟอร์มไหม? ข้อมูลที่กรอกไว้ยังไม่ได้บันทึก")) onClose();
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (step < 2) { setStep(step + 1); return; }
-    setMessage("กรอกข้อมูลครบแล้วค่ะ 🧡 นี่เป็นการทดลอง ยังไม่ได้ส่งคำขอหรืออัปเดตโปรไฟล์");
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/adoptions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ animalId: animal.animal_id, ...form }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setMessage("ส่งคำขอเรียบร้อยแล้วค่ะ 🧡 ข้อมูลโปรไฟล์ของคุณถูกอัปเดตแล้ว");
+      onSubmitted?.();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "ส่งคำขอไม่สำเร็จ");
+    } finally { setSubmitting(false); }
   }
 
   function input(field: Field, label: string, options: {
@@ -67,7 +90,7 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
         <div className="input-wrapper">
           <input id={`adoption-${field}`} name={field} type={type}
             className={`form-control${suffix ? " has-suffix" : ""}${field === "budget" ? " budget" : ""}`}
-            value={form[field]} onChange={(event) => update(field, event.target.value)}
+            value={String(form[field])} onChange={(event) => update(field, event.target.value)}
             placeholder={placeholder} required={required}
             min={type === "number" ? 0 : undefined}
             step={type === "number" ? 1 : undefined}
@@ -102,14 +125,14 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
         <div className="animal-highlight">
           {animal.image_url && !imageFailed
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img className="animal-img" src={animal.image_url} alt={animal.name} onError={() => setImageFailed(true)} />
+            ? <img className="animal-img" src={(Array.isArray(animal.image_url) ? animal.image_url[0] : animal.image_url) || undefined} alt={animal.name} onError={() => setImageFailed(true)} />
             : <span className="animal-img" role="img" aria-label={animal.species}>🐾</span>}
           <div className="animal-details">
             <h3>{animal.name}</h3>
             <p><span>{animal.species === "แมว" ? "🐈" : "🐕"} {animal.species}</span><span>•</span><span>{animal.gender === "ตัวเมีย" ? "♀️" : "♂️"} {animal.gender}</span></p>
           </div>
         </div>
-        <form onSubmit={handleSubmit}>
+        {loadingProfile ? <p className="profile-loading">กำลังเติมข้อมูลจากโปรไฟล์…</p> : <form onSubmit={handleSubmit}>
           <div className="form-step active" key={step}>
             {step === 0 && <>
               {input("fullName", "ชื่อ-นามสกุล", { required: true, placeholder: "ชื่อและนามสกุลของคุณ" })}
@@ -129,6 +152,25 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
                   <option value="condo">คอนโด / หอพัก (อนุญาตให้เลี้ยงสัตว์)</option>
                 </select>
               </div>
+              {input("address", "ที่อยู่โดยละเอียด", { required: true, placeholder: "บ้านเลขที่ หมู่ ซอย ถนน" })}
+              <div className="form-group">
+                <label htmlFor="adoption-province">จังหวัด <span className="req-mark">*</span></label>
+                <select id="adoption-province" className="form-control" required value={form.province} onChange={(event) => update("province", event.target.value)}>
+                  <option value="" disabled>เลือกจังหวัด...</option>
+                  {THAI_PROVINCES.map((province) => <option key={province} value={province}>{province}</option>)}
+                </select>
+              </div>
+              <div className="form-group full-width">
+                <label>ที่พักอนุญาตให้เลี้ยงสัตว์แล้วใช่ไหม? <span className="req-mark">*</span></label>
+                <div className="permission-options">
+                  <button type="button" className={form.petPermission ? "selected" : ""} onClick={() => update("petPermission", true)}>✓ อนุญาตแล้ว</button>
+                  <button type="button" className={!form.petPermission ? "selected" : ""} onClick={() => update("petPermission", false)}>ยังไม่แน่ใจ</button>
+                </div>
+              </div>
+              {showResidenceNote ? <div className="form-group full-width">
+                <label htmlFor="adoption-residenceNote">รายละเอียดที่พัก <span className="opt-mark">(ไม่บังคับ)</span></label>
+                <textarea id="adoption-residenceNote" className="form-control" placeholder="เช่น มีรั้วรอบบ้าน / ระเบียงปิด" value={form.residenceNote} onChange={(event) => update("residenceNote", event.target.value)} />
+              </div> : <div className="form-group full-width"><button type="button" className="add-detail" onClick={() => setShowResidenceNote(true)}>＋ เพิ่มรายละเอียดที่พัก (ไม่บังคับ)</button></div>}
               {input("familyMembers", "สมาชิกในครอบครัว", { type: "number", placeholder: "เช่น 3", suffix: "คน" })}
               {input("animalCount", "ตอนนี้มีสัตว์เลี้ยงที่บ้านกี่ตัว?", { type: "number", placeholder: "ถ้าไม่มีให้ใส่ 0", suffix: "ตัว", required: true })}
             </>}
@@ -152,11 +194,11 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
             {message && <p className="test-result" role="status">{message}</p>}
             <div className="button-group">
               {step > 0 && <button type="button" className="btn btn-back" onClick={() => { setStep(step - 1); setMessage(""); }}>← ย้อนกลับ</button>}
-              <button type="submit" className="btn btn-next">{step < 2 ? "ถัดไป ➜" : "ทดลองส่งคำขอรับเลี้ยง 🐾"}</button>
+              <button type="submit" className="btn btn-next" disabled={submitting}>{step < 2 ? "ถัดไป ➜" : submitting ? "กำลังส่งคำขอ…" : "ส่งคำขอรับเลี้ยงเลย! 🐾"}</button>
             </div>
-            {step === 2 && <p className="helper-text-bottom">💡 ขณะนี้เป็นแบบฟอร์มทดลอง ยังไม่บันทึกคำขอหรืออัปเดตโปรไฟล์</p>}
+            {step === 2 && <p className="helper-text-bottom">💡 เมื่อส่งคำขอ ข้อมูลจะอัปเดตในหน้าโปรไฟล์ของคุณโดยอัตโนมัติ</p>}
           </div>
-        </form>
+        </form>}
       </div>
       <style jsx global>{`        .pm-adoption {
             background-color: var(--bg-cream);
@@ -269,6 +311,12 @@ export default function AdoptionRequestModal({ animal, onClose }: Props) {
 .pm-adoption button:focus-visible { outline:3px solid #C07055; outline-offset:4px; }
 .pm-adoption .helper-text-bottom { line-height:1.7; }
 .pm-adoption .test-result { grid-column:1 / -1; margin:0; padding:12px 16px; border:1px solid #E29578; border-radius:12px; color:#854b36; background:#FDF0EB; font:13px/1.7 'Prompt',sans-serif; }
+.pm-adoption .profile-loading { padding:38px 0; text-align:center; color:#78716C; font:14px 'Prompt',sans-serif; }
+.pm-adoption .btn:disabled { opacity:.65; cursor:wait; transform:none; }
+.pm-adoption .permission-options { display:flex; gap:10px; }
+.pm-adoption .permission-options button, .pm-adoption .add-detail { border:1px solid #E7E5E4; border-radius:12px; background:#fff; color:#78716C; padding:11px 14px; font:14px 'Prompt',sans-serif; cursor:pointer; }
+.pm-adoption .permission-options button.selected { border-color:#E29578; background:#FDF0EB; color:#854b36; font-weight:600; }
+.pm-adoption .add-detail { width:100%; border-style:dashed; color:#C07055; background:#FFFBF9; }
 @media(max-width:600px) {
  .pm-adoption { border-radius:24px; max-height:94dvh; }
  .pm-adoption .modal-content { padding:52px 22px 26px; }
