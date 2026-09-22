@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       userId: user.user_id,
       email: user.email ?? email,
       role: user.role,
-      username: user.username,
+      name: user.username,
     });
 
     // 4. กำหนดเส้นทาง Redirect ตาม Role ของผู้ใช้งาน
