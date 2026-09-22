@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface UserProfile {
   id: string;
-  name: string;
+  name?: string;
+  username?: string;
   email: string;
   role: string;
   avatarUrl?: string | null;
@@ -14,12 +15,11 @@ interface UserProfile {
 
 export default function Navbar() {
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
 
-  // 1. ดึงข้อมูล User จาก Session ปัจจุบัน
+  // 1. ตรวจสอบ Session ทุกครั้งที่เปลี่ยนหน้า
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -27,32 +27,22 @@ export default function Navbar() {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       } catch {
         setUser(null);
       }
     };
     checkAuth();
-  }, []);
+  }, [pathname]);
 
-  // 2. ปิด Dropdown เมื่อคลิกนอกพื้นที่
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // 3. ฟังก์ชัน Logout
+  // 2. ปิด Drawer และออกจากระบบ
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
-      setIsDropdownOpen(false);
-      setIsMenuOpen(false);
+      setIsLeftDrawerOpen(false);
       router.push("/login");
       router.refresh();
     } catch (err) {
@@ -60,20 +50,25 @@ export default function Navbar() {
     }
   };
 
-  // ล็อกการเลื่อนหน้าจอเวลาเปิดเมนูมือถือ
+  // ล็อกการเลื่อนหน้าจอเวลา Drawer เปิด
   useEffect(() => {
-    if (isMenuOpen) document.body.style.overflow = "hidden";
+    if (isLeftDrawerOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "auto";
-  }, [isMenuOpen]);
+  }, [isLeftDrawerOpen]);
+
+  const displayName = user?.name || user?.username || "ผู้ใช้งาน";
+  const avatarLetter = displayName.slice(0, 1).toUpperCase();
 
   return (
     <>
+      {/* แถบ Navbar หลัก */}
       <nav className="w-full px-6 py-4 flex justify-between items-center bg-transparent relative z-20">
+        {/* โลโก้ */}
         <Link href="/" className="flex items-center gap-2 font-mali font-semibold text-2xl text-stone-800 hover:text-[#C07055] transition">
           <i className="fa-solid fa-paw text-[#C07055]"></i> GoHome
         </Link>
 
-        {/* Center Links */}
+        {/* เมนูกลาง (ตัดคำว่าจัดการข้อมูลสัตว์ Admin ออกตามที่แจ้ง) */}
         <div className="hidden md:flex gap-8 items-center text-[15px] font-prompt text-stone-600">
           <Link href="/" className="hover:text-[#C07055] transition duration-200">หน้าหลัก</Link>
           <Link href="/cases" className="hover:text-[#C07055] transition duration-200">เคสที่ต้องการความช่วยเหลือ</Link>
@@ -81,137 +76,176 @@ export default function Navbar() {
           <Link href="/about" className="hover:text-[#C07055] transition duration-200">เกี่ยวกับเรา</Link>
         </div>
 
-        {/* Desktop Auth Section */}
-        <div className="hidden md:flex gap-4 items-center font-prompt">
+        {/* ฝั่งขวา Navbar */}
+        <div className="flex items-center gap-3 font-prompt">
           {user ? (
-            // แสดงโปรไฟล์ผู้ใช้เมื่อล็อกอินแล้ว
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-3">
+              {/* ปุ่ม Avatar: มีพื้นหลังชัดเจน กดแล้วเปิดเมนูซ้าย */}
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2.5 p-1.5 pl-3 pr-2 rounded-full border border-stone-200 hover:border-[#E29578] bg-white shadow-sm transition"
+                type="button"
+                onClick={() => setIsLeftDrawerOpen(true)}
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#FDF0EB] border border-[#E29578]/40 hover:bg-[#fae2d9] transition shadow-xs cursor-pointer group"
+                title="คลิกเพื่อเปิดเมนูผู้ใช้"
               >
-                <div className="w-8 h-8 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30">
-                  {user.name ? user.name.slice(0, 1).toUpperCase() : "🐾"}
+                <div className="w-7 h-7 rounded-full bg-[#E29578] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={displayName} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    avatarLetter
+                  )}
                 </div>
-                <span className="text-xs font-semibold text-stone-700 max-w-[120px] truncate">
-                  {user.name || "ผู้ใช้งาน"}
+                <span className="text-xs font-semibold text-stone-700 group-hover:text-[#C07055] transition">
+                  {displayName}
                 </span>
-                <span className="text-[10px] text-stone-400">▼</span>
+                <i className="fa-solid fa-bars text-stone-400 text-xs"></i>
               </button>
 
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 top-12 w-52 bg-white rounded-2xl shadow-xl border border-stone-100 py-2 z-50 text-xs text-stone-700">
-                  <div className="px-4 py-2 border-b border-stone-100">
-                    <p className="font-semibold text-stone-800 truncate">{user.name}</p>
-                    <p className="text-[11px] text-stone-400 truncate">{user.email}</p>
-                  </div>
-                  <Link
-                    href={user.role === "admin" || user.role === "shelter" ? "/admin/dashboard" : "/dashboard"}
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-[#FDF0EB]/50 transition"
-                  >
-                    <span>📊</span> แดชบอร์ดติดตามสถานะ
-                  </Link>
-                  <div className="border-t border-stone-100 my-1"></div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 text-red-500 font-medium transition"
-                  >
-                    <span>🚪</span> ออกจากระบบ
-                  </button>
-                </div>
-              )}
+              {/* ปุ่ม Logout ไอคอนออกจากระบบ */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-stone-600 hover:text-red-500 transition p-1.5 text-base cursor-pointer"
+                title="ออกจากระบบ"
+              >
+                <i className="fa-solid fa-arrow-right-from-bracket"></i>
+              </button>
             </div>
           ) : (
-            // แสดงปุ่ม Guest เมื่อยังไม่ล็อกอิน
-            <>
-              <Link href="/login" className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700">
+            /* ปุ่มเมื่อยังไม่ล็อกอิน */
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700 text-sm">
                 เข้าสู่ระบบ
               </Link>
-              <Link href="/register" className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-6 py-2 rounded-full transition duration-300 shadow-sm">
+              <Link href="/register" className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-5 py-2 rounded-full transition duration-300 shadow-sm text-sm">
                 สมัครสมาชิก
               </Link>
-            </>
+            </div>
           )}
         </div>
-
-        {/* Mobile Hamburger Button */}
-        <button onClick={() => setIsMenuOpen(true)} className="md:hidden text-2xl text-stone-700 hover:text-[#C07055] transition">
-          <i className="fa-solid fa-bars"></i>
-        </button>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <div 
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${isMenuOpen ? "opacity-100 block" : "opacity-0 hidden"}`}
-        onClick={() => setIsMenuOpen(false)}
+      {/* ========================================================= */}
+      {/* เมนูด้านข้างที่เลื่อนออกมาจาก "ฝั่งซ้ายของจอ" (Left Side Drawer) */}
+      {/* ========================================================= */}
+      {/* ฉากหลังสีดำทึบ (Backdrop Overlay) */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 ${isLeftDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        onClick={() => setIsLeftDrawerOpen(false)}
       ></div>
 
-      {/* Mobile Sidebar */}
-      <div className={`fixed top-0 right-0 w-72 h-full bg-white z-50 transform transition-transform duration-300 shadow-2xl flex flex-col ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="p-6 flex justify-between items-center border-b border-stone-100">
-          <span className="font-mali font-bold text-stone-800">เมนู</span>
-          <button onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-500 hover:text-[#C07055] transition">
-            <i className="fa-solid fa-xmark"></i>
+      {/* กล่องเมนูจากซ้าย */}
+      <aside
+        className={`fixed top-0 left-0 w-80 max-w-[85vw] h-full bg-white z-50 transform transition-transform duration-300 ease-out shadow-2xl flex flex-col ${isLeftDrawerOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        {/* หัวข้อ Drawer ด้านบน */}
+        <div className="p-6 border-b border-stone-100 flex items-center justify-between bg-stone-50/60">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-[#FDF0EB] border border-[#E29578]/50 text-[#C07055] flex items-center justify-center font-bold text-base shadow-xs">
+              {avatarLetter}
+            </div>
+            <div className="overflow-hidden">
+              <p className="font-semibold text-sm text-stone-800 truncate">{displayName}</p>
+              <p className="text-[11px] text-stone-400 truncate">{user?.email}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="w-8 h-8 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 flex items-center justify-center transition"
+          >
+            <i className="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
 
-        {/* Links */}
-        <div className="flex flex-col gap-5 px-6 pt-6 text-[15px] font-prompt text-stone-700">
-          <Link href="/" onClick={() => setIsMenuOpen(false)} className="hover:text-[#C07055] transition flex items-center gap-3">
-            <i className="fa-solid fa-house w-5 text-stone-400"></i> หน้าหลัก
-          </Link>
-          <Link href="/cases" onClick={() => setIsMenuOpen(false)} className="hover:text-[#C07055] transition flex items-center gap-3">
-            <i className="fa-solid fa-hand-holding-heart w-5 text-stone-400"></i> เคสที่ต้องการช่วยเหลือ
-          </Link>
-          <Link href="/report" onClick={() => setIsMenuOpen(false)} className="hover:text-[#C07055] transition flex items-center gap-3">
-            <i className="fa-solid fa-map-location-dot w-5 text-stone-400"></i> แจ้งพบเจอสัตว์
-          </Link>
-          <Link href="/about" onClick={() => setIsMenuOpen(false)} className="hover:text-[#C07055] transition flex items-center gap-3">
-            <i className="fa-solid fa-circle-info w-5 text-stone-400"></i> เกี่ยวกับเรา
-          </Link>
-        </div>
+        {/* รายการเมนูทางลัด */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 font-prompt text-sm text-stone-700">
+          <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-3 mb-2">
+            ข้อมูลและการจัดการ
+          </p>
 
-        {/* Mobile Bottom Section */}
-        <div className="mt-auto p-6 border-t border-stone-100 font-prompt">
-          {user ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 bg-stone-50 p-3 rounded-2xl">
-                <div className="w-10 h-10 rounded-full bg-[#FDF0EB] text-[#C07055] flex items-center justify-center font-bold text-sm border border-[#E29578]/30">
-                  {user.name ? user.name.slice(0, 1).toUpperCase() : "🐾"}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="font-semibold text-xs text-stone-800 truncate">{user.name}</p>
-                  <p className="text-[10px] text-stone-400 truncate">{user.email}</p>
-                </div>
-              </div>
+          <Link
+            href="/profile"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">จัดการโปรไฟล์</span>
+          </Link>
+
+
+          <Link
+            href="/profile"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">หน้าหลัก</span>
+          </Link>
+
+
+          <Link
+            href="/profile"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">เคสที่ต้องการความช่วยเหลือ</span>
+          </Link>
+
+          
+
+          <Link
+            href="/report"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-map-location-dot text-stone-400 w-5 text-center"></i>
+            <span>แจ้งพบเจอสัตว์</span>
+          </Link>
+
+
+          <Link
+            href="/report"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-map-location-dot text-stone-400 w-5 text-center"></i>
+            <span>เกี่ยวกับเรา</span>
+          </Link>
+
+
+          {/* เมนูจัดการสัตว์สำหรับ Admin */}
+          {user?.role === "admin" && (
+            <div className="pt-3 mt-3 border-t border-stone-100">
+              <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-3 mb-2">
+                ผู้ดูแลระบบ (Admin)
+              </p>
               <Link
-                href={user.role === "admin" || user.role === "shelter" ? "/admin/dashboard" : "/dashboard"}
-                onClick={() => setIsMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-semibold hover:bg-stone-50 transition"
+                href="/admin/animals"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-[#FDF0EB] text-[#C07055] font-semibold hover:bg-[#fae2d9] transition"
               >
-                ไปที่แดชบอร์ด
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="w-full text-center py-2.5 rounded-xl bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition"
-              >
-                ออกจากระบบ
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <Link href="/login" onClick={() => setIsMenuOpen(false)} className="font-mali font-semibold text-center border-2 border-[#E29578] text-[#C07055] py-2.5 rounded-full hover:bg-[#FDF0EB] transition text-sm">
-                เข้าสู่ระบบ
-              </Link>
-              <Link href="/register" onClick={() => setIsMenuOpen(false)} className="font-mali font-semibold text-center bg-[#E29578] hover:bg-[#C07055] text-white py-2.5 rounded-full transition shadow-sm text-sm">
-                สมัครสมาชิก
+                <i className="fa-solid fa-shield-cat w-5 text-center text-[#C07055]"></i>
+                <span>จัดการข้อมูลสัตว์ (Admin)</span>
               </Link>
             </div>
           )}
         </div>
-      </div>
+
+        {/* ปุ่มออกจากระบบด้านล่าง Drawer */}
+        <div className="p-4 border-t border-stone-100">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-50 text-red-500 font-semibold text-xs hover:bg-red-100 transition"
+          >
+            <i className="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>ออกจากระบบ</span>
+          </button>
+        </div>
+      </aside>
     </>
   );
 }

@@ -18,13 +18,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. ค้นหาผู้ใช้จากตาราง public.users ผ่านอีเมล
-    const identifier = String(body.username ?? body.email ?? "").trim().toLowerCase();
+    // 1. ค้นหาผู้ใช้จากตาราง public.users (ใช้ ilike เพื่อให้ค้นหาได้ทั้ง Ball และ ball)
+    const identifier = String(body.username ?? body.email ?? "").trim();
 
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")
       .select("user_id, role, username, password_hash, email, phone")
-      .or(`email.eq.${identifier},username.eq.${identifier}`)
+      .or(`email.ilike.${identifier},username.ilike.${identifier}`)
       .maybeSingle<User>();
 
     if (userError || !user || !user.password_hash) {
@@ -48,14 +48,16 @@ export async function POST(request: Request) {
       userId: user.user_id,
       email: user.email ?? email,
       role: user.role,
-      username: user.username,
+      name: user.username,
     });
 
     // 4. กำหนดเส้นทาง Redirect ตาม Role ของผู้ใช้งาน
-    const redirectTo =
-      user.role === "admin" || user.role === "shelter"
-        ? "/admin/dashboard"
-        : "/dashboard";
+    // const redirectTo =
+    //   user.role === "admin" || user.role === "shelter"
+    //     ? "/admin/dashboard"
+    //     : "/dashboard";
+    // 4. กำหนดเส้นทาง Redirect ไปยังหน้าแรก (Landing Page)
+    const redirectTo = "/";
 
     return NextResponse.json({
       message: "เข้าสู่ระบบสำเร็จ",
