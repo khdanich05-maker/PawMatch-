@@ -1,4 +1,8 @@
 import Link from 'next/link';
+import { getCurrentUser } from '@/lib/auth';
+
+export default async function Home() {
+  const user = await getCurrentUser();
 
   return (
     <div className="w-full">
@@ -13,9 +17,23 @@ import Link from 'next/link';
             จับคู่อาสาสมัครกับสัตว์จรที่ต้องการความช่วยเหลือ ตามพื้นที่ เวลา และความพร้อมของคุณ
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/register" className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center">
-              <i className="fa-solid fa-heart mr-2"></i>เริ่มเป็นอาสาสมัคร
-            </Link>
+            {/* สลับปุ่มตามสถานะผู้ใช้ */}
+            {user ? (
+              <Link 
+                href="/cases" 
+                className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center"
+              >
+                <i className="fa-solid fa-paw mr-2"></i>ดูเคสช่วยเหลือสัตว์
+              </Link>
+            ) : (
+              <Link 
+                href="/register" 
+                className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center"
+              >
+                <i className="fa-solid fa-heart mr-2"></i>เริ่มเป็นอาสาสมัคร
+              </Link>
+            )}
+
             <Link href="/cases" className="font-mali font-semibold border-2 border-primary text-primary hover:bg-bgAccent px-6 py-3 rounded-full transition duration-300 text-center flex items-center justify-center">
               ดูเคสที่ต้องการความช่วยเหลือ <i className="fa-solid fa-magnifying-glass ml-2"></i>
             </Link>
@@ -59,7 +77,7 @@ import Link from 'next/link';
           </Link>
         </div>
 
-        {/* Grid 4 Cards (แสดงเป็นตัวอย่าง) */}
+        {/* Grid 4 Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Card 1 */}
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition duration-300 border border-gray-100 flex flex-col">
@@ -117,7 +135,6 @@ import Link from 'next/link';
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start text-center gap-10 relative">
-            {/* เส้นเชื่อมตรงกลาง (โชว์เฉพาะจอคอม) */}
             <div className="hidden md:block absolute top-10 left-[12%] right-[12%] h-0.5 bg-gray-200 -z-10 w-3/4 mx-auto"></div>
 
             <div className="flex-1 flex flex-col items-center bg-white z-10 px-2 w-full">
@@ -164,7 +181,7 @@ import Link from 'next/link';
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="font-mali font-semibold text-3xl md:text-4xl text-textMain mb-4">พบเห็นสัตว์จรจัดที่ต้องการความช่วยเหลือ?</h2>
             <p className="text-gray-600 mb-8 leading-relaxed">
-              ไม่จำเป็นต้องเป็นสมาชิกก็สามารถแจ้งเหตุได้! เพียงแค่ถ่ายรูปและปักหมุดพิกัดลงบนแผนที่ ระบบของเราจะส่งข้อมูลให้ศูนย์พักพิงที่ใกล้ที่สุดทันที
+              ไม่จำเป็นต้องเป็นสมาชิกก็สามารถแจ้งเหตุได้! เพีกยงแค่ถ่ายรูปและปักหมุดพิกัดลงบนแผนที่ ระบบของเราจะส่งข้อมูลให้ศูนย์พักพิงที่ใกล้ที่สุดทันที
             </p>
             <Link href="/report" className="inline-flex items-center font-mali font-semibold bg-primary hover:bg-primaryHover text-white text-lg px-8 py-4 rounded-full transition duration-300 shadow-lg transform hover:-translate-y-1">
               <i className="fa-solid fa-location-dot mr-2"></i> แจ้งพบสัตว์จรจัดด่วน
@@ -172,7 +189,6 @@ import Link from 'next/link';
           </div>
         </div>
       </section>
-
     </div>
   );
 }
