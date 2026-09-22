@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
 
+
 export function useCasesAnimals() {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -12,6 +13,8 @@ export function useCasesAnimals() {
   const [filterAge, setFilterAge] = useState("all");
   const [filterProvince, setFilterProvince] = useState("all");
   const [filterColor, setFilterColor] = useState("all");
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const fetchAnimals = async () => {
     setLoading(true);
@@ -70,6 +73,70 @@ export function useCasesAnimals() {
     setFilterColor("all");
   };
 
+
+
+  const handleConfirmAdopt = async (targetAnimal: any) => {
+    if (!targetAnimal || !currentUser) return;
+
+    const currentUserId = currentUser.id || currentUser.userId;
+
+    try {
+      // 1. เพิ่มคำขอลงตาราง matches
+      const { error: matchError } = await supabase.from("matches").insert([
+        {
+          animal_id: targetAnimal.animal_id,
+          user_id: currentUserId,
+          status: "รอการอนุมัติ",
+        },
+      ]);
+
+      if (matchError) throw matchError;
+
+      // 2. อัปเดตสถานะสัตว์ในตาราง animals
+      const { error: animalError } = await supabase
+        .from("animals")
+        .update({ status: "รอการอนุมัติ" })
+        .eq("animal_id", targetAnimal.animal_id);
+
+      if (animalError) throw animalError;
+
+      // 3. ปรับปรุง state ฝั่ง Client ทันที
+      setAnimals((prev) =>
+        prev.map((a) =>
+          a.animal_id === targetAnimal.animal_id
+            ? { ...a, status: "รอการอนุมัติ" }
+            : a
+        )
+      );
+
+      alert(`ยื่นคำขอรับเลี้ยง "${targetAnimal.name}" เรียบร้อยแล้ว`);
+    } catch (err: any) {
+      console.error("Error adopting animal:", err);
+      alert("เกิดข้อผิดพลาด: " + (err.message || err));
+    }
+  };
+
+  useEffect(() => {
+    // ดึง session จากระบบหลังบ้านให้ตรงกับ Navbar
+    async function fetchSession() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      } catch (err) {
+        console.error("Error fetching auth:", err);
+        setCurrentUser(null);
+      }
+    }
+
+    fetchSession();
+  }, []);
+
+
   return {
     animals,
     loading,
@@ -84,5 +151,6 @@ export function useCasesAnimals() {
     filterColor,
     setFilterColor,
     handleResetFilter,
+    currentUser,
   };
 }
