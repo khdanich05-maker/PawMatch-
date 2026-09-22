@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
+import { getAnimalImages } from "@/lib/animalImageHelper";
 
 type Status = "pending" | "approved" | "rejected";
 type AnimalCase = { id: string; name: string; species: string; gender: string; image: string };
@@ -10,11 +11,12 @@ type Applicant = {
   id: string; animalId: string; name: string; phone: string; submittedAt: string;
   accommodation: string; ownHouse: boolean; budget: number; careTime: string;
   hasTime: boolean; petCount: number; familyMembers: number; reason: string;
-  status: Status; rejectionReason?: string;
+  status: Status; rejectionReason?: string; address?: string; province?: string;
+  petPermission?: boolean; residenceNote?: string;
 };
 type Filters = { ownHouse: boolean; budget: boolean; time: boolean; noPets: boolean };
 const emptyFilters: Filters = { ownHouse: false, budget: false, time: false, noPets: false };
-const statusLabels: Record<Status, string> = { pending: "รอการอนุมัติ", approved: "อนุมัติแล้ว", rejected: "ไม่อนุมัติ" };
+const statusLabels: Record<Status, string> = { pending: "รอพิจารณา", approved: "อนุมัติแล้ว", rejected: "ไม่อนุมัติ" };
 const defaultAnimalCases: AnimalCase[] = [
   { id: "mali", name: "น้องมะลิ", species: "หมาพันธุ์ทาง", gender: "เพศเมีย", image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=200&q=80" },
   { id: "cola", name: "น้องโคล่า", species: "สุนัข", gender: "เพศผู้", image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=200&q=80" },
@@ -58,12 +60,13 @@ function Modal({ children, onClose }: { children: ReactNode; onClose: () => void
 }
 
 export default function AdminAdoptionsPage() {
-  const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
-  const [animalCases, setAnimalCases] = useState<AnimalCase[]>(defaultAnimalCases);
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [animalCases, setAnimalCases] = useState<AnimalCase[]>([]);
   const [dataError, setDataError] = useState("");
   const [animalId, setAnimalId] = useState<string | null>(null);
   const [animalSearch, setAnimalSearch] = useState("");
   const [sort, setSort] = useState("oldest");
+  const [dashboardStatus, setDashboardStatus] = useState<Status | "all">("all");
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
@@ -77,8 +80,8 @@ export default function AdminAdoptionsPage() {
   const selectedAnimal = animalCases.find((animal) => animal.id === selected?.animalId);
   const pendingCount = applicants.filter((applicant) => applicant.status === "pending").length;
   const approvedCount = applicants.filter((applicant) => applicant.status === "approved").length;
+  const rejectedCount = applicants.filter((applicant) => applicant.status === "rejected").length;
   const approvedForAnimal = (id: string) => applicants.some((applicant) => applicant.animalId === id && applicant.status === "approved");
-  const casesWithPending = animalCases.filter((animal) => applicants.some((applicant) => applicant.animalId === animal.id && applicant.status === "pending")).length;
   const animalApplicants = applicants.filter((applicant) => applicant.animalId === animalId).sort((a,b) => Date.parse(a.submittedAt) - Date.parse(b.submittedAt));
   const oldestPendingId = animalApplicants.find((applicant) => applicant.status === "pending")?.id;
   const filteredApplicants = animalApplicants.filter((applicant) => {
@@ -94,7 +97,10 @@ export default function AdminAdoptionsPage() {
     const source = entries.length ? entries : applicants.filter((applicant) => applicant.animalId === id);
     return Math.min(...source.map((applicant) => Date.parse(applicant.submittedAt)));
   };
-  const visibleAnimals = animalCases.filter((animal) => animal.name.includes(animalSearch.trim())).sort((a,b) => sort === "oldest" ? oldestRequest(a.id) - oldestRequest(b.id) : oldestRequest(b.id) - oldestRequest(a.id));
+  const visibleAnimals = animalCases
+    .filter((animal) => animal.name.includes(animalSearch.trim()))
+    .filter((animal) => dashboardStatus === "all" || applicants.some((applicant) => applicant.animalId === animal.id && applicant.status === dashboardStatus))
+    .sort((a,b) => sort === "oldest" ? oldestRequest(a.id) - oldestRequest(b.id) : oldestRequest(b.id) - oldestRequest(a.id));
 
   useEffect(() => { sectionRef.current?.focus({ preventScroll: true }); }, [animalId]);
   useEffect(() => {
@@ -106,9 +112,10 @@ export default function AdminAdoptionsPage() {
       const nextApplicants = requests.map((item: any) => {
         const animal = Array.isArray(item.animals) ? item.animals[0] : item.animals;
         const user = Array.isArray(item.users) ? item.users[0] : item.users;
-        const image = Array.isArray(animal?.image_url) ? animal.image_url[0] : animal?.image_url;
-        nextAnimals.set(item.animal_id, { id: item.animal_id, name: animal?.name || "สัตว์", species: animal?.species || "", gender: animal?.gender || "", image: image || "" });
-        return { id:item.match_id, animalId:item.animal_id, name:user?.full_name || user?.username || "ไม่ระบุชื่อ", phone:user?.phone || "-", submittedAt:item.start_date, accommodation:user?.accommodation_type || "-", ownHouse:Boolean(user?.pet_permission), budget:Number(item.monthly_budget || 0), careTime:item.care_time || "-", hasTime:(item.care_time || "").includes("4") || (item.care_time || "").includes("6"), petCount:Number(user?.animal_count || 0), familyMembers:Number(item.family_members || 0), reason:item.adoption_reason || "-", status:item.match_status === "อนุมัติ" ? "approved" : item.match_status === "ปฏิเสธ" ? "rejected" : "pending", rejectionReason:item.rejection_reason || undefined } as Applicant;
+        const image = getAnimalImages(animal?.image_url)[0];
+        const careLabels: Record<string, string> = { under_2:"น้อยกว่า 2 ชั่วโมง", "2_4":"2–4 ชั่วโมง", "4_6":"4–6 ชั่วโมง", over_6:"มากกว่า 6 ชั่วโมง" };
+        nextAnimals.set(item.animal_id, { id: item.animal_id, name: animal?.name || "สัตว์", species: animal?.species || "", gender: animal?.gender || "", image });
+        return { id:item.match_id, animalId:item.animal_id, name:user?.full_name || user?.username || "ไม่ระบุชื่อ", phone:user?.phone || "-", submittedAt:item.start_date, accommodation:user?.accommodation_type || "-", ownHouse:Boolean(user?.pet_permission), budget:Number(item.monthly_budget || 0), careTime:careLabels[item.care_time] || item.care_time || "-", hasTime:["4_6", "over_6"].includes(item.care_time), petCount:Number(user?.animal_count || 0), familyMembers:Number(item.family_members || 0), reason:item.adoption_reason || "-", status:item.match_status === "อนุมัติ" ? "approved" : item.match_status === "ปฏิเสธ" ? "rejected" : "pending", rejectionReason:item.rejection_reason || undefined, address:user?.address || "-", province:user?.province || "-", petPermission:Boolean(user?.pet_permission), residenceNote:user?.residence_note || "-" } as Applicant;
       });
       setAnimalCases(Array.from(nextAnimals.values()));
       setApplicants(nextApplicants);
@@ -127,7 +134,11 @@ export default function AdminAdoptionsPage() {
     const response = await fetch("/api/admin/adoptions", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ matchId:selected.id, action:decision === "approved" ? "approve" : "reject", reason:reason.trim() }) });
     const data = await response.json();
     if (!response.ok) { setNotice(data.error || "บันทึกผลไม่สำเร็จ"); return; }
-    setApplicants((previous) => previous.map((applicant) => applicant.id === selected.id ? { ...applicant, status: decision, rejectionReason: decision === "rejected" ? reason.trim() : undefined } : applicant));
+    setApplicants((previous) => previous.map((applicant) => {
+      if (applicant.id === selected.id) return { ...applicant, status: decision, rejectionReason: decision === "rejected" ? reason.trim() : undefined };
+      if (decision === "approved" && applicant.animalId === selected.animalId && applicant.status === "pending") return { ...applicant, status: "rejected", rejectionReason: "สัตว์ตัวนี้ได้รับการอนุมัติให้ผู้สมัครรายอื่นแล้ว" };
+      return applicant;
+    }));
     setNotice(`${decision === "approved" ? "อนุมัติ" : "ไม่อนุมัติ"}คำขอของ ${selected.name} แล้ว`);
     closeModal();
   }
@@ -136,24 +147,22 @@ export default function AdminAdoptionsPage() {
       <div className="review-content">
         <header className="page-heading">
           <Link href="/admin/profile" className="profile-link"><i className="fa-solid fa-arrow-left" aria-hidden="true" /> กลับโปรไฟล์แอดมิน</Link>
-          <p className="eyebrow">พื้นที่สำหรับผู้ดูแลระบบ</p>
           <div className="title-row">
             <div>
               <h1>ตรวจสอบคำขอรับเลี้ยง</h1>
-              <p>พิจารณาข้อมูลและความพร้อมของผู้สมัคร ก่อนมอบบ้านที่เหมาะสมให้น้อง</p>
             </div>
             {activeAnimal && <button type="button" className="back-button" onClick={() => setAnimalId(null)}>← กลับรายการสัตว์</button>}
           </div>
         </header>
-        {dataError ? <div className="demo-banner error-banner"><span>{dataError}</span></div> : <div className="demo-banner"><span>💡 ข้อมูลคำขอจาก Supabase · การอนุมัติและไม่อนุมัติจะบันทึกผลจริง</span></div>}
+        {dataError && <div className="notice error-banner" role="alert"><span>{dataError}</span></div>}
         {notice && <p className="notice" role="status">{notice}</p>}
         {!activeAnimal ? <>
-          <div className="summary-grid">
-            <div className="summary-card"><span className="summary-icon amber"><i className="fa-solid fa-hourglass-half" aria-hidden="true" /></span><div><p>รอการอนุมัติ</p><strong>{pendingCount}</strong><small> คำขอ</small></div></div>
-            <div className="summary-card"><span className="summary-icon green"><i className="fa-solid fa-face-smile-beam" aria-hidden="true" /></span><div><p>อนุมัติแล้วในชุดตัวอย่าง</p><strong>{approvedCount}</strong><small> คำขอ</small></div></div>
-            <div className="summary-card"><span className="summary-icon peach"><i className="fa-solid fa-house" aria-hidden="true" /></span><div><p>สัตว์ที่มีคำขอรอพิจารณา</p><strong>{casesWithPending}</strong><small> ตัว</small></div></div>
+          <div className="summary-grid" aria-label="กรองรายการคำขอตามสถานะ">
+            <button type="button" className={`summary-card ${dashboardStatus === "pending" ? "selected" : ""}`} aria-pressed={dashboardStatus === "pending"} onClick={() => setDashboardStatus((current) => current === "pending" ? "all" : "pending")}><span className="summary-icon amber"><i className="fa-solid fa-hourglass-half" aria-hidden="true" /></span><div><p>คำขอรอพิจารณา</p><strong>{pendingCount}</strong><small> คำขอ</small></div></button>
+            <button type="button" className={`summary-card ${dashboardStatus === "approved" ? "selected" : ""}`} aria-pressed={dashboardStatus === "approved"} onClick={() => setDashboardStatus((current) => current === "approved" ? "all" : "approved")}><span className="summary-icon green"><i className="fa-solid fa-circle-check" aria-hidden="true" /></span><div><p>คำขอที่อนุมัติ</p><strong>{approvedCount}</strong><small> คำขอ</small></div></button>
+            <button type="button" className={`summary-card ${dashboardStatus === "rejected" ? "selected" : ""}`} aria-pressed={dashboardStatus === "rejected"} onClick={() => setDashboardStatus((current) => current === "rejected" ? "all" : "rejected")}><span className="summary-icon rose"><i className="fa-solid fa-circle-xmark" aria-hidden="true" /></span><div><p>คำขอที่ปฏิเสธ</p><strong>{rejectedCount}</strong><small> คำขอ</small></div></button>
           </div>
-          <div className="list-heading"><h2 ref={sectionRef} tabIndex={-1}>รายการคำขอแยกตามสัตว์</h2><div className="list-tools"><input aria-label="ค้นหาชื่อสัตว์" placeholder="ค้นหาชื่อสัตว์..." value={animalSearch} onChange={(event) => setAnimalSearch(event.target.value)} /><select aria-label="เรียงรายการสัตว์ตามคำขอที่รอเก่าที่สุด" value={sort} onChange={(event) => setSort(event.target.value)}><option value="oldest">คำขอเก่าที่สุดขึ้นก่อน</option><option value="newest">คำขอเก่าที่สุดขึ้นท้าย</option></select></div></div>
+          <div className="list-heading"><h2 ref={sectionRef} tabIndex={-1}>{dashboardStatus === "all" ? "รายการคำขอแยกตามสัตว์" : `รายการ${statusLabels[dashboardStatus]}แยกตามสัตว์`}</h2><div className="list-tools">{dashboardStatus !== "all" && <button type="button" className="clear-status" onClick={() => setDashboardStatus("all")}>แสดงทั้งหมด</button>}<input aria-label="ค้นหาชื่อสัตว์" placeholder="ค้นหาชื่อสัตว์..." value={animalSearch} onChange={(event) => setAnimalSearch(event.target.value)} /><select aria-label="เรียงรายการสัตว์ตามคำขอที่รอเก่าที่สุด" value={sort} onChange={(event) => setSort(event.target.value)}><option value="oldest">คำขอเก่าที่สุดขึ้นก่อน</option><option value="newest">คำขอเก่าที่สุดขึ้นท้าย</option></select></div></div>
           <div className="animal-list">
             {visibleAnimals.map((animal) => {
               const pending = applicants.filter((applicant) => applicant.animalId === animal.id && applicant.status === "pending").length;
@@ -166,11 +175,11 @@ export default function AdminAdoptionsPage() {
           </div>
         </> : <>
           <section className="animal-banner"><div className="animal-info"><Photo animal={activeAnimal} /><div><h1 ref={sectionRef} tabIndex={-1}>{activeAnimal.name}</h1><p className="muted">{activeAnimal.species} · {activeAnimal.gender}</p></div></div><span className="badge pending">ผู้ขอทั้งหมด {animalApplicants.length} คน · เก่าไปใหม่</span></section>
-          {approvedForAnimal(activeAnimal.id) && <p className="notice">สัตว์ตัวนี้มีผู้ได้รับอนุมัติแล้ว จึงไม่สามารถอนุมัติซ้ำให้ผู้อื่นได้ในตัวอย่างนี้ คำขออื่นยังคงรอการพิจารณา</p>}
+          {approvedForAnimal(activeAnimal.id) && <p className="notice">สัตว์ตัวนี้มีผู้ได้รับอนุมัติแล้ว จึงไม่สามารถอนุมัติซ้ำให้ผู้อื่นได้</p>}
           <section className="filter-panel" aria-label="ตัวกรองผู้สมัคร">
             <div className="filter-top"><h2><i className="fa-solid fa-filter" aria-hidden="true" /> คัดกรองปัจจัยสำคัญ <small>(เลือกผสมกันได้)</small></h2><input aria-label="ค้นหาชื่อผู้สมัครหรือเบอร์โทร" placeholder="ค้นหาชื่อผู้สมัคร, เบอร์โทร..." value={search} onChange={(event) => setSearch(event.target.value)} /></div>
             <div className="filter-chips">{([{ key:"ownHouse", label:"🏡 บ้านส่วนตัว" }, { key:"budget", label:"💰 งบ ≥ 3,000 บาท" }, { key:"time", label:"⏰ ว่างตลอด / เกือบตลอด" }, { key:"noPets", label:"🐾 ไม่มีสัตว์เลี้ยงเดิม" }] as const).map(({ key,label }) => <label className={`filter-chip ${filters[key] ? "checked" : ""}`} key={key}><span>{label}</span><input type="checkbox" checked={filters[key]} onChange={(event) => setFilters((previous) => ({ ...previous, [key]:event.target.checked }))} /></label>)}</div>
-            <div className="filter-bottom"><label>สถานะ <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as Status | "all")}><option value="all">ทั้งหมด</option><option value="pending">รอการอนุมัติ</option><option value="approved">อนุมัติแล้ว</option><option value="rejected">ไม่อนุมัติ</option></select></label><button type="button" onClick={resetFilters}>ล้างตัวกรอง</button></div>
+            <div className="filter-bottom"><label>สถานะ <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as Status | "all")}><option value="all">ทั้งหมด</option><option value="pending">รอพิจารณา</option><option value="approved">อนุมัติแล้ว</option><option value="rejected">ไม่อนุมัติ</option></select></label><button type="button" onClick={resetFilters}>ล้างตัวกรอง</button></div>
           </section>
           <section className="applicants-panel"><div className="list-heading"><h2>รายชื่อผู้ยื่นคำขอรับเลี้ยง</h2><span className="muted" role="status">แสดง {filteredApplicants.length} จาก {animalApplicants.length} คน</span></div>
             <div className="table-scroll" role="region" aria-label="ตารางผู้สมัคร เลื่อนแนวนอนได้" tabIndex={0}><table><thead><tr><th scope="col"># / ผู้สมัคร</th><th scope="col">ที่พัก / งบประมาณ / เวลาว่าง</th><th scope="col">เวลาที่ส่ง</th><th scope="col">จัดการ / สถานะ</th></tr></thead><tbody>
@@ -188,16 +197,16 @@ export default function AdminAdoptionsPage() {
 
     {selected && selectedAnimal && <Modal key={`${selected.id}-${mode}`} onClose={closeModal}>
       <h2 id="review-modal-title">{mode === "detail" ? "รายละเอียดคำขอรับเลี้ยง 🏡" : mode === "approved" ? "ยืนยันอนุมัติคำขอ 🧡" : "แจ้งเหตุผลที่ไม่อนุมัติ"}</h2>
-      <p className="modal-subtitle">คำขอรับเลี้ยง{selectedAnimal.name} · ข้อมูลตัวอย่าง</p>
+      <p className="modal-subtitle">คำขอรับเลี้ยง{selectedAnimal.name} · ข้อมูลจาก Supabase</p>
       <div className="applicant-summary"><span className="user-icon"><i className="fa-solid fa-user" aria-hidden="true" /></span><div><h3>{selected.name}</h3><p>โทร: {selected.phone}</p><p>ส่งเมื่อ: {formatDate(selected.submittedAt)}</p></div></div>
       {mode === "detail" ? <>
         <div className="detail-grid">{[
-          ["ประเภทที่พัก / กรรมสิทธิ์",selected.accommodation], ["งบดูแลต่อเดือน",`${money(selected.budget)} บาท`], ["เวลาว่างในการดูแลต่อวัน",selected.careTime], ["สัตว์เลี้ยงปัจจุบัน",`${selected.petCount} ตัว`], ["สมาชิกในครอบครัว",`${selected.familyMembers} คน`], ["สถานะคำขอ",statusLabels[selected.status]],
-        ].map(([label,value]) => <div className="detail-item" key={label}><span>{label}</span><strong>{value}</strong></div>)}<div className="detail-item full"><span>เหตุผลที่อยากรับน้องไปดูแล 💖</span><p>{selected.reason}</p></div>{selected.rejectionReason && <div className="detail-item full rejection"><span>เหตุผลที่ไม่อนุมัติ</span><p>{selected.rejectionReason}</p></div>}</div>
+          ["ประเภทที่พัก",selected.accommodation], ["งบดูแลต่อเดือน",`${money(selected.budget)} บาท`], ["เวลาว่างในการดูแลต่อวัน",selected.careTime], ["สัตว์เลี้ยงปัจจุบัน",`${selected.petCount} ตัว`], ["สมาชิกในครอบครัว",`${selected.familyMembers} คน`], ["สถานะคำขอ",statusLabels[selected.status]],
+        ].map(([label,value]) => <div className="detail-item" key={label}><span>{label}</span><strong>{value}</strong></div>)}<div className="detail-item full"><span>ที่อยู่</span><p>{selected.address}{selected.province !== "-" ? ` · ${selected.province}` : ""}</p></div><div className="detail-item full"><span>การอนุญาตให้เลี้ยงสัตว์ / รายละเอียดที่พัก</span><p>{selected.petPermission ? "ได้รับอนุญาตให้เลี้ยงสัตว์" : "ยังไม่ได้ระบุการอนุญาต"}{selected.residenceNote !== "-" ? ` · ${selected.residenceNote}` : ""}</p></div><div className="detail-item full"><span>เหตุผลที่อยากรับน้องไปดูแล 💖</span><p>{selected.reason}</p></div>{selected.rejectionReason && <div className="detail-item full rejection"><span>เหตุผลที่ไม่อนุมัติ</span><p>{selected.rejectionReason}</p></div>}</div>
         {selected.status === "pending" && <div className="modal-actions"><button type="button" className="approve-button" disabled={approvedForAnimal(selected.animalId)} onClick={() => setMode("approved")}>✓ อนุมัติคำขอ</button><button type="button" className="reject-button" onClick={() => setMode("rejected")}>ไม่อนุมัติคำขอ</button></div>}
       </> : <form onSubmit={confirmDecision}>
-        {mode === "approved" ? <p className="decision-copy">ยืนยันทดลองอนุมัติให้ <strong>{selected.name}</strong> รับเลี้ยง <strong>{selectedAnimal.name}</strong> ใช่ไหม? คำขออื่นจะยังไม่ถูกเปลี่ยนสถานะอัตโนมัติ</p> : <label className="reason-label" htmlFor="rejection-reason">เหตุผลที่ไม่อนุมัติ <span>*</span><textarea id="rejection-reason" required maxLength={1000} rows={4} placeholder="ระบุเหตุผลอย่างสุภาพและชัดเจน..." value={reason} onChange={(event) => setReason(event.target.value)} /></label>}
-        <p className="test-copy">การยืนยันนี้เปลี่ยนเฉพาะข้อมูลตัวอย่างบนหน้านี้ ยังไม่ส่งผลไปยังผู้สมัคร</p>
+        {mode === "approved" ? <p className="decision-copy">ยืนยันอนุมัติให้ <strong>{selected.name}</strong> รับเลี้ยง <strong>{selectedAnimal.name}</strong> ใช่ไหม? คำขอที่รอพิจารณารายอื่นของสัตว์ตัวนี้จะเปลี่ยนเป็นไม่อนุมัติโดยอัตโนมัติ</p> : <label className="reason-label" htmlFor="rejection-reason">เหตุผลที่ไม่อนุมัติ <span>*</span><textarea id="rejection-reason" required maxLength={1000} rows={4} placeholder="ระบุเหตุผลอย่างสุภาพและชัดเจน..." value={reason} onChange={(event) => setReason(event.target.value)} /></label>}
+        <p className="test-copy">ผลการพิจารณาจะบันทึกใน Supabase และผู้สมัครจะเห็นสถานะในหน้าคำขอรับเลี้ยงของตน</p>
         <div className="modal-actions"><button type="button" className="back-button" onClick={() => { setMode("detail"); setReason(""); }}>ย้อนกลับ</button><button type="submit" className={mode === "approved" ? "approve-button" : "reject-button"} disabled={mode === "approved" ? approvedForAnimal(selected.animalId) : !reason.trim()}>ยืนยัน{mode === "approved" ? "อนุมัติ" : "ไม่อนุมัติ"}</button></div>
       </form>}
     </Modal>}
@@ -219,15 +228,17 @@ export default function AdminAdoptionsPage() {
       .demo-banner { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:11px; line-height:1.8; color:#9C6A51; margin-bottom:22px; }
       .demo-banner a { color:#9C6A51; text-decoration:underline; text-underline-offset:3px; }
       .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; margin-bottom:30px; }
-      .summary-card { display:flex; align-items:center; gap:16px; padding:25px; background:#fff; border:1px solid #E5E7EB; border-radius:25px; box-shadow:0 2px 3px #44403C05; }
+      .summary-card { display:flex; width:100%; align-items:center; gap:16px; padding:25px; background:#fff; border:1px solid #E5E7EB; border-radius:25px; box-shadow:0 2px 3px #44403C05; text-align:left; transition:border-color .2s,box-shadow .2s,transform .2s; }
+      .summary-card:hover,.summary-card.selected { border-color:#E29578; box-shadow:0 7px 20px #E2957816; }.summary-card.selected { background:#FFF8F4; transform:translateY(-2px); }
       .summary-icon { width:55px; height:55px; display:grid; place-items:center; border-radius:18px; font-size:23px; flex-shrink:0; }
-      .amber { background:#FFFBEB; color:#D18A12; }.green { background:#F0FDF4; color:#16A34A; }.peach { background:#FFF7ED; color:#E29578; }
+      .amber { background:#FFFBEB; color:#D18A12; }.green { background:#F0FDF4; color:#16A34A; }.rose { background:#FFF1F2; color:#BE4C58; }
       .summary-card p { color:#89909C; font-size:11px; margin:0 0 7px; line-height:1.6; }.summary-card strong { font:400 30px 'Itim',cursive; }.summary-card small { color:#6B7280; font-size:11px; }
       .list-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
       .list-heading h2 { margin:0; font:600 21px/1.6 'Mali',cursive; outline:none; }
       .list-tools { display:flex; gap:10px; flex-wrap:wrap; }
       .adoption-review input:not([type=checkbox]), .adoption-review select { max-width:100%; min-width:0; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:13px; padding:10px 12px; font-size:12px; color:#44403C; }
       .adoption-review input::placeholder { color:#9CA3AF; }.list-tools input { width:180px; }
+      .clear-status { border:1px solid #E7C2AF; border-radius:13px; background:#FFF8F4; color:#C07055; padding:10px 12px; font-size:12px; white-space:nowrap; }
       .animal-list { display:grid; gap:18px; }
       .animal-case { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:22px; border:1px solid #E5E7EB; border-radius:24px; background:#fff; text-align:left; width:100%; box-shadow:0 2px 3px #44403C05; transition:border-color .2s,box-shadow .2s; }
       .animal-case:hover { border-color:#E29578; box-shadow:0 6px 20px #E2957810; }

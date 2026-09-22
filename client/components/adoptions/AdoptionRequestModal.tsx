@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Animal } from "@/types/animal";
 import { THAI_PROVINCES } from "@/constants/provinces";
+import { getAnimalImages } from "@/lib/animalImageHelper";
 
 type Props = { animal: Animal; onClose: () => void; onSubmitted?: () => void };
 const initialForm = {
@@ -125,7 +126,7 @@ export default function AdoptionRequestModal({ animal, onClose, onSubmitted }: P
         <div className="animal-highlight">
           {animal.image_url && !imageFailed
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img className="animal-img" src={(Array.isArray(animal.image_url) ? animal.image_url[0] : animal.image_url) || undefined} alt={animal.name} onError={() => setImageFailed(true)} />
+            ? <img className="animal-img" src={getAnimalImages(animal.image_url)[0]} alt={animal.name} onError={() => setImageFailed(true)} />
             : <span className="animal-img" role="img" aria-label={animal.species}>🐾</span>}
           <div className="animal-details">
             <h3>{animal.name}</h3>
@@ -192,11 +193,11 @@ export default function AdoptionRequestModal({ animal, onClose, onSubmitted }: P
               </div>
             </>}
             {message && <p className="test-result" role="status">{message}</p>}
-            <div className="button-group">
-              {step > 0 && <button type="button" className="btn btn-back" onClick={() => { setStep(step - 1); setMessage(""); }}>← ย้อนกลับ</button>}
-              <button type="submit" className="btn btn-next" disabled={submitting}>{step < 2 ? "ถัดไป ➜" : submitting ? "กำลังส่งคำขอ…" : "ส่งคำขอรับเลี้ยงเลย! 🐾"}</button>
-            </div>
-            {step === 2 && <p className="helper-text-bottom">💡 เมื่อส่งคำขอ ข้อมูลจะอัปเดตในหน้าโปรไฟล์ของคุณโดยอัตโนมัติ</p>}
+          </div>
+          {step === 2 && <p className="helper-text-bottom">💡 เมื่อส่งคำขอ ข้อมูลจะอัปเดตในหน้าโปรไฟล์ของคุณโดยอัตโนมัติ</p>}
+          <div className="button-group">
+            {step > 0 && <button type="button" className="btn btn-back" onClick={() => { setStep(step - 1); setMessage(""); }}>← ย้อนกลับ</button>}
+            <button type="submit" className="btn btn-next" disabled={submitting}>{step < 2 ? "ถัดไป ➜" : submitting ? "กำลังส่งคำขอ…" : "ส่งคำขอรับเลี้ยงเลย! 🐾"}</button>
           </div>
         </form>}
       </div>
@@ -306,7 +307,7 @@ export default function AdoptionRequestModal({ animal, onClose, onSubmitted }: P
 .pm-adoption .form-control.budget { padding-right:105px; }
 .pm-adoption textarea.form-control { min-height:88px; }
 .pm-adoption .form-group label { line-height:1.6; }
-.pm-adoption .button-group { margin-top:30px; }
+.pm-adoption .button-group { position:sticky; bottom:-26px; z-index:5; margin-top:18px; padding:14px 0 10px; background:linear-gradient(to bottom, rgba(252,250,248,0), #FCFAF8 18%); }
 .pm-adoption .btn { line-height:1.4; }
 .pm-adoption button:focus-visible { outline:3px solid #C07055; outline-offset:4px; }
 .pm-adoption .helper-text-bottom { line-height:1.7; }

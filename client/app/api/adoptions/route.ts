@@ -5,9 +5,14 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
-  const { data, error } = await supabaseAdmin.from("matches").select(`match_id, animal_id, match_status, start_date, end_date, care_time, monthly_budget, family_members, adoption_reason, rejection_reason, reviewed_at, animals (animal_id, name, species, gender, image_url, shelters (shelter_name, province, contact_phone))`).eq("user_id", user.user_id).order("start_date", { ascending: false });
-  if (error) return NextResponse.json({ error: "ไม่สามารถอ่านสถานะคำขอได้" }, { status: 500 });
-  return NextResponse.json({ requests: data ?? [] });
+  const baseFields = "match_id, animal_id, match_status, start_date, end_date, care_time, monthly_budget, family_members, adoption_reason, animals (animal_id, name, species, gender, image_url, shelters (shelter_name, province, contact_phone))";
+  const { data, error } = await supabaseAdmin.from("matches").select(baseFields).eq("user_id", user.user_id).order("start_date", { ascending: false });
+  if (error) return NextResponse.json({ error: `ไม่สามารถอ่านสถานะคำขอได้: ${error.message}` }, { status: 500 });
+  const { data: profile, error: profileError } = await supabaseAdmin.from("users").select("full_name, phone, accommodation_type, animal_count, address, province, pet_permission, residence_note").eq("user_id", user.user_id).maybeSingle();
+  if (profileError) return NextResponse.json({ error: `ไม่สามารถอ่านข้อมูลโปรไฟล์ได้: ${profileError.message}` }, { status: 500 });
+  const { data: reasons } = await supabaseAdmin.from("matches").select("match_id, rejection_reason").eq("user_id", user.user_id);
+  const reasonByMatch = new Map((reasons ?? []).map((item) => [item.match_id, item.rejection_reason]));
+  return NextResponse.json({ requests: (data ?? []).map((item) => ({ ...item, users: profile, rejection_reason: reasonByMatch.get(item.match_id) ?? null })) });
 }
 
 export async function POST(request: Request) {
@@ -30,4 +35,19 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: "ส่งคำขอไม่สำเร็จ กรุณาลองใหม่" }, { status: 500 });
   if (animal.status === "รอคนดูแล") await supabaseAdmin.from("animals").update({ status: "รอการอนุมัติ" }).eq("animal_id", body.animalId);
   return NextResponse.json({ request: data }, { status: 201 });
+}
+
+export async function DELETE(request: Request) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
+  const matchId = new URL(request.url).searchParams.get("matchId");
+  if (!matchId) return NextResponse.json({ error: "ไม่พบคำขอที่ต้องการยกเลิก" }, { status: 400 });
+  const { data: match } = await supabaseAdmin.from("matches").select("match_id, animal_id, match_status").eq("match_id", matchId).eq("user_id", user.user_id).maybeSingle();
+  if (!match) return NextResponse.json({ error: "ไม่พบคำขอของคุณ" }, { status: 404 });
+  if (match.match_status !== "รออนุมัติ") return NextResponse.json({ error: "ยกเลิกได้เฉพาะคำขอที่รออนุมัติ" }, { status: 409 });
+  const { error } = await supabaseAdmin.from("matches").delete().eq("match_id", matchId).eq("user_id", user.user_id);
+  if (error) return NextResponse.json({ error: "ยกเลิกคำขอไม่สำเร็จ" }, { status: 500 });
+  const { count } = await supabaseAdmin.from("matches").select("match_id", { count: "exact", head: true }).eq("animal_id", match.animal_id).eq("match_status", "รออนุมัติ");
+  if (!count) await supabaseAdmin.from("animals").update({ status: "รอคนดูแล" }).eq("animal_id", match.animal_id).eq("status", "รอการอนุมัติ");
+  return NextResponse.json({ ok: true });
 }
