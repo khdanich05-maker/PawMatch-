@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
 import { THAI_PROVINCES } from "@/constants/provinces";
+import { getAnimalImages } from "@/lib/animalImageHelper";
 import AdoptionRequestModal from "@/components/adoptions/AdoptionRequestModal";
 
 export default function CasesPage() {
@@ -12,10 +13,10 @@ export default function CasesPage() {
   const [sessionRole, setSessionRole] = useState<string | null>(null);
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
   const [adoptionAnimal, setAdoptionAnimal] = useState<Animal | null>(null);
-  // ย้ายมาวางไว้ตรงนี้
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  // ค่าตัวกรอง
+
+  // State ตัวกรองและการดึงข้อมูล
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterSpecies, setFilterSpecies] = useState("all");
@@ -23,76 +24,30 @@ export default function CasesPage() {
   const [filterAge, setFilterAge] = useState("all");
   const [filterProvince, setFilterProvince] = useState("all");
   const [filterColor, setFilterColor] = useState("all");
-  // วางฟังก์ชันนี้ไว้ภายใน CasesPage ก่อนคำสั่ง return (...)
-  const getAnimalImages = (imageUrl: any): string[] => {
-    if (!imageUrl) return ["https://images.unsplash.com/photo-1543466835-00a7907e9de1"];
-
-    // กรณีเป็น Array อยู่แล้ว
-    if (Array.isArray(imageUrl)) {
-      return imageUrl.filter((url) => typeof url === "string" && url.trim() !== "");
-    }
-
-    // กรณีเป็น String ก้อนเดียว หรือ String คั่นด้วยจุลภาค/ปีกกาจาก Postgres
-    if (typeof imageUrl === "string") {
-      try {
-        if (imageUrl.startsWith("[") && imageUrl.endsWith("]")) {
-          const parsed = JSON.parse(imageUrl);
-          if (Array.isArray(parsed)) return parsed;
-        }
-      } catch (e) { }
-
-      const cleanStr = imageUrl.replace(/^\{|\}$/g, "").replace(/["']/g, "");
-      const list = cleanStr.split(",").map((url) => url.trim()).filter(Boolean);
-      return list.length > 0 ? list : ["https://images.unsplash.com/photo-1543466835-00a7907e9de1"];
-    }
-
-    return ["https://images.unsplash.com/photo-1543466835-00a7907e9de1"];
-  };
 
   const fetchAnimals = async () => {
     setLoading(true);
     try {
-      // 1. ดึงข้อมูลสัตว์พร้อมข้อมูลศูนย์พักพิงที่เชื่อมโยงอยู่
       let query = supabase
         .from("animals")
-        .select(`
-        *,
-        shelters (
-          shelter_name,
-          province,
-          address,
-          contact_phone
-        )
-      `)
+        .select(`*, shelters (shelter_name, province, address, contact_phone)`)
         .order("created_at", { ascending: false });
 
-      // 2. กรองข้อมูลตาม Dropdown เฉพาะตัวที่ไม่ใช่ 'all'
       if (filterSpecies !== "all") query = query.eq("species", filterSpecies);
       if (filterGender !== "all") query = query.eq("gender", filterGender);
       if (filterAge !== "all") query = query.eq("age", filterAge);
       if (filterColor !== "all") query = query.eq("color", filterColor);
 
       const { data, error } = await query;
-
-      if (error) {
-        console.error("Supabase Error:", error.message);
-        setAnimals([]);
-      } else {
-        let result = (data as Animal[]) || [];
-
-        // คัดกรองตัวที่ได้บ้านแล้วออก (ถ้าเป็นหน้าค้นหาหาบ้านสำหรับผู้ใช้ทั่วไป)
-        result = result.filter((item) => item.status !== "ได้บ้านแล้ว");
-
-        // กรองจังหวัดฝั่ง Client ป้องกันปัญหา Join ข้ามตารางหลุด[cite: 8]
+      if (!error && data) {
+        let result = (data as Animal[]).filter((item) => item.status !== "ได้บ้านแล้ว");
         if (filterProvince !== "all") {
           result = result.filter((item) => item.shelters?.province === filterProvince);
         }
-
         setAnimals(result);
       }
     } catch (err) {
-      console.error("Fetch error:", err);
-      setAnimals([]);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -116,7 +71,7 @@ export default function CasesPage() {
 
   const openModal = (animal: Animal) => {
     setSelectedAnimal(animal);
-    setCurrentImageIndex(0); // 👈 เพิ่มบรรทัดนี้เพื่อเริ่มที่รูปแรกเสมอ
+    setCurrentImageIndex(0);
     document.body.style.overflow = "hidden";
   };
 
@@ -140,7 +95,6 @@ export default function CasesPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 min-h-screen">
-      {/* หัวข้อหน้า (ปรับ font-size ให้พอดีบนมือถือ) */}
       <div className="mb-6 sm:mb-8">
         <h1 className="font-mali font-semibold text-2xl sm:text-4xl mb-1 sm:mb-2 text-textMain">
           เพื่อนสี่ขาที่รอคอยบ้าน 🐾
@@ -150,7 +104,6 @@ export default function CasesPage() {
 
       {/* กล่อง Filter */}
       <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 sm:mb-10">
-        {/* ส่วนหัวตัวกรอง: ทำหน้าที่เป็นปุ่มกด ย่อ/ขยาย บนมือถือ */}
         <div
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="flex items-center justify-between font-mali font-semibold text-primary text-base sm:text-lg cursor-pointer sm:cursor-default select-none"
@@ -158,8 +111,6 @@ export default function CasesPage() {
           <div className="flex items-center gap-2">
             <i className="fa-solid fa-filter"></i> ตัวกรองการค้นหา
           </div>
-
-          {/* ปุ่มกดสลับสถานะ (แสดงเฉพาะจอมือถือ ซ่อนบนจอ sm ขึ้นไป) */}
           <button
             type="button"
             className="sm:hidden text-xs bg-bgAccent px-3 py-1.5 rounded-full text-primary flex items-center gap-1.5 transition"
@@ -169,11 +120,8 @@ export default function CasesPage() {
           </button>
         </div>
 
-        {/* บล็อกตัวกรอง: พับซ่อนบนมือถือถ้า isFilterOpen = false แต่แสดงเสมอเมื่อจอคอม (sm:block) */}
         <div className={`mt-4 ${isFilterOpen ? "block" : "hidden sm:block"}`}>
-          {/* จัด 2 คอลัมน์บนมือถือเพื่อประหยัดพื้นที่แนวตั้ง ไม่กินหน้าจอ */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            {/* 1. สปีชีส์ */}
             <div>
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">ประเภทสัตว์</label>
               <select
@@ -187,7 +135,6 @@ export default function CasesPage() {
               </select>
             </div>
 
-            {/* 2. เพศ */}
             <div>
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">เพศ</label>
               <select
@@ -201,7 +148,6 @@ export default function CasesPage() {
               </select>
             </div>
 
-            {/* 3. อายุ */}
             <div>
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">ช่วงอายุ</label>
               <select
@@ -216,7 +162,6 @@ export default function CasesPage() {
               </select>
             </div>
 
-            {/* 4. สี */}
             <div>
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">สีหลัก</label>
               <select
@@ -234,7 +179,6 @@ export default function CasesPage() {
               </select>
             </div>
 
-            {/* 5. จังหวัด (ให้กว้าง 2 ช่องเต็มบรรทัดบนมือถือ เพื่ออ่านชื่อจังหวัดได้ชัดเจน) */}
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">พื้นที่ / จังหวัด</label>
               <select
@@ -252,12 +196,11 @@ export default function CasesPage() {
             </div>
           </div>
 
-          {/* ปุ่มล้างค่า */}
           <div className="flex justify-end gap-3 border-t border-gray-100 pt-3 sm:pt-4">
             <button
               type="button"
               onClick={handleResetFilter}
-              className="font-mali font-semibold text-xs sm:text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl transition duration-200 flex items-center gap-2"
+              className="font-mali font-semibold text-xs sm:text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl transition duration-200 flex items-center gap-2 cursor-pointer"
             >
               <i className="fa-solid fa-rotate-left"></i> ล้างค่า
             </button>
@@ -265,11 +208,7 @@ export default function CasesPage() {
         </div>
       </div>
 
-      {/* ถัดจากนี้เป็นการ์ด Grid แสดงสัตว์ตามปกติ */}
-
-
-
-      {/* รายการแสดงผล Card สัตว์ */}
+      {/* Grid การ์ดสัตว์ */}
       {loading ? (
         <div className="text-center py-20 text-gray-400 font-mali text-lg">
           <i className="fa-solid fa-spinner fa-spin text-3xl text-primary mb-3 block"></i>
@@ -281,15 +220,12 @@ export default function CasesPage() {
           ไม่พบข้อมูลสัตว์ที่ตรงกับเงื่อนไข
         </div>
       ) : (
-
-
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {animals.map((animal) => (
             <div
               key={animal.animal_id}
               className="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-1 transition duration-300 border border-gray-100 flex flex-col h-full group"
             >
-              {/* 1. ล็อกอัตราส่วนรูปเป็น 4:3 ไม่ให้สูงเรียวยาว */}
               <div
                 onClick={() => openModal(animal)}
                 className="relative w-full aspect-[4/3] bg-bgAccent flex items-center justify-center text-primaryHover overflow-hidden cursor-pointer"
@@ -304,15 +240,11 @@ export default function CasesPage() {
                   <i className={`fa-solid ${animal.species === "แมว" ? "fa-cat" : "fa-dog"} text-4xl sm:text-5xl`}></i>
                 )}
 
-                {/* ป้ายสถานะ (ย่อขนาดบนมือถือ) */}
                 <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-white/90 backdrop-blur-xs text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-semibold shadow-xs flex items-center gap-1">
                   <span
-                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${animal.status === "รอคนดูแล"
-                        ? "bg-green-500 animate-pulse"
-                        : animal.status === "รอการอนุมัติ"
-                          ? "bg-orange-400"
-                          : "bg-gray-400"
-                      }`}
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+                      animal.status === "รอคนดูแล" ? "bg-green-500 animate-pulse" : "bg-orange-400"
+                    }`}
                   ></span>
                   <span className={animal.status === "รอคนดูแล" ? "text-green-600" : "text-orange-500"}>
                     {animal.status}
@@ -320,7 +252,6 @@ export default function CasesPage() {
                 </span>
               </div>
 
-              {/* 2. ลด Padding และช่องว่างด้านล่างเพื่อไม่ให้การ์ดยืด */}
               <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-center mb-1.5 sm:mb-2">
@@ -328,8 +259,9 @@ export default function CasesPage() {
                       {animal.name || "ไม่ระบุชื่อ"}
                     </h3>
                     <span
-                      className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center text-xs ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
-                        }`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center text-xs ${
+                        animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
+                      }`}
                     >
                       <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
                     </span>
@@ -347,11 +279,10 @@ export default function CasesPage() {
                   </div>
                 </div>
 
-                {/* 3. ปรับขนาดปุ่มกดให้กะทัดรัดลง */}
                 <button
                   type="button"
                   onClick={() => openModal(animal)}
-                  className="w-full font-mali font-semibold border border-primary text-primary hover:bg-bgAccent py-1.5 sm:py-2 rounded-xl transition duration-300 flex justify-center items-center gap-1.5 text-xs"
+                  className="w-full font-mali font-semibold border border-primary text-primary hover:bg-bgAccent py-1.5 sm:py-2 rounded-xl transition duration-300 flex justify-center items-center gap-1.5 text-xs cursor-pointer"
                 >
                   <i className="fa-solid fa-eye text-[11px]"></i> ดูรายละเอียด
                 </button>
