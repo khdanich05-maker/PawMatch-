@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
 import { THAI_PROVINCES } from "@/constants/provinces";
+import AdoptionRequestModal from "@/components/adoptions/AdoptionRequestModal";
 
 export default function CasesPage() {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+
+  const [adoptionAnimal, setAdoptionAnimal] = useState<Animal | null>(null);
 
   // ค่าตัวกรอง
   const [filterSpecies, setFilterSpecies] = useState("all");
@@ -335,15 +338,27 @@ export default function CasesPage() {
 
               <div className="mt-auto pt-2">
                 <button
-                  className="w-full font-mali font-semibold bg-gray-200 text-gray-500 py-3 rounded-xl cursor-not-allowed flex justify-center items-center gap-2"
-                  title="กรุณาเข้าสู่ระบบก่อนทำรายการ"
+                  type="button"
+                  onClick={() => {
+                    const animal = selectedAnimal;
+                    closeModal();
+                    setAdoptionAnimal(animal);
+                  }}
+                  className="w-full font-mali font-semibold bg-primary text-white hover:bg-primaryHover py-3 rounded-xl transition flex justify-center items-center gap-2"
                 >
-                  <i className="fa-solid fa-lock"></i> เข้าสู่ระบบเพื่อขอรับเลี้ยง
+                  <i className="fa-solid fa-heart" aria-hidden="true"></i>
+                  ทดลองกรอกคำขอรับเลี้ยง
                 </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+      {adoptionAnimal && (
+        <AdoptionRequestModal
+          animal={adoptionAnimal}
+          onClose={() => setAdoptionAnimal(null)}
+        />
       )}
     </main>
   );
