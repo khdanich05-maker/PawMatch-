@@ -216,6 +216,7 @@ export default function Navbar() {
           </Link>
 
 
+
           {/* เมนูจัดการสัตว์สำหรับ Admin */}
           {user?.role === "admin" && (
             <div className="pt-3 mt-3 border-t border-stone-100">

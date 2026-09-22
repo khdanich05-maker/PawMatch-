@@ -23,14 +23,19 @@ export default function UrgentCasesSection() {
           .from("animals")
           .select("*, shelters(shelter_name, province)")
           .eq("status", "รอคนดูแล")
-          .order("created_at", { ascending: true })
-          .limit(4);
+          .limit(20); // 1. ดึงกลุ่มตัวอย่างสัตว์ที่รอคนดูแลมา 20 ตัว
 
         if (error) {
           console.error("Error fetching urgent animals:", error.message);
-        } else if (data) {
-          setUrgentAnimals(data as Animal[]);
+        } else if (data && data.length > 0) {
+          // 2. สุ่มสลับลำดับ (Random Shuffle)
+          const shuffled = [...data].sort(() => 0.5 - Math.random());
+
+          // 3. เลือกหยิบมาแสดงผล 4 ตัวแบบสุ่ม
+          setUrgentAnimals(shuffled.slice(0, 4) as Animal[]);
         }
+
+
       } catch (err) {
         console.error(err);
       } finally {
@@ -90,10 +95,10 @@ export default function UrgentCasesSection() {
                     alt={animal.name}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300"
                   />
-                  <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-medium shadow-xs flex items-center gap-1 font-prompt z-10">
+                  {/* <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-medium shadow-xs flex items-center gap-1 font-prompt z-10">
                     <i className="fa-regular fa-clock text-[9px] sm:text-[10px] text-amber-400"></i>
                     รอมาแล้ว {days} วัน
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
@@ -103,11 +108,10 @@ export default function UrgentCasesSection() {
                         {animal.name}
                       </h3>
                       <span
-                        className={`w-5 h-5 sm:w-6 sm:h-6 shrink-0 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] ${
-                          animal.gender === "ตัวเมีย"
+                        className={`w-5 h-5 sm:w-6 sm:h-6 shrink-0 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] ${animal.gender === "ตัวเมีย"
                             ? "bg-pink-50 text-pink-500"
                             : "bg-blue-50 text-blue-500"
-                        }`}
+                          }`}
                         title={animal.gender}
                       >
                         <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
