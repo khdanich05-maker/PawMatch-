@@ -267,15 +267,18 @@ export default function CasesPage() {
           ไม่พบข้อมูลสัตว์ที่ตรงกับเงื่อนไข
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {animals.map((animal) => (
             <div
               key={animal.animal_id}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 border border-gray-100 flex flex-col h-full group"
+              className="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-1 transition duration-300 border border-gray-100 flex flex-col h-full group"
             >
+              {/* 1. ล็อกอัตราส่วนรูปเป็น 4:3 ไม่ให้สูงเรียวยาว */}
               <div
                 onClick={() => openModal(animal)}
-                className="h-56 bg-bgAccent flex items-center justify-center text-primaryHover relative overflow-hidden cursor-pointer"
+                className="relative w-full aspect-[4/3] bg-bgAccent flex items-center justify-center text-primaryHover overflow-hidden cursor-pointer"
               >
                 {animal.image_url ? (
                   <img
@@ -284,17 +287,17 @@ export default function CasesPage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
                 ) : (
-                  <i className={`fa-solid ${animal.species === "แมว" ? "fa-cat" : "fa-dog"} text-6xl`}></i>
+                  <i className={`fa-solid ${animal.species === "แมว" ? "fa-cat" : "fa-dog"} text-4xl sm:text-5xl`}></i>
                 )}
 
-                {/* Badge สถานะ */}
-                <span className="absolute top-3 left-3 bg-white/90 text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm flex items-center gap-1.5">
+                {/* ป้ายสถานะ (ย่อขนาดบนมือถือ) */}
+                <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-white/90 backdrop-blur-xs text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-semibold shadow-xs flex items-center gap-1">
                   <span
-                    className={`w-2.5 h-2.5 rounded-full ${animal.status === "รอคนดูแล"
-                      ? "bg-green-500 animate-pulse"
-                      : animal.status === "รอการอนุมัติ"
-                        ? "bg-orange-400"
-                        : "bg-gray-400"
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${animal.status === "รอคนดูแล"
+                        ? "bg-green-500 animate-pulse"
+                        : animal.status === "รอการอนุมัติ"
+                          ? "bg-orange-400"
+                          : "bg-gray-400"
                       }`}
                   ></span>
                   <span className={animal.status === "รอคนดูแล" ? "text-green-600" : "text-orange-500"}>
@@ -303,31 +306,40 @@ export default function CasesPage() {
                 </span>
               </div>
 
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-itim text-2xl text-textMain">{animal.name || "ไม่ระบุชื่อ"}</h3>
-                  <span
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
-                      }`}
-                  >
-                    <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
-                  </span>
+              {/* 2. ลด Padding และช่องว่างด้านล่างเพื่อไม่ให้การ์ดยืด */}
+              <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+                    <h3 className="font-itim text-lg sm:text-xl text-textMain truncate pr-1">
+                      {animal.name || "ไม่ระบุชื่อ"}
+                    </h3>
+                    <span
+                      className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center text-xs ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
+                        }`}
+                    >
+                      <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 text-[11px] sm:text-xs text-gray-500 mb-3 sm:mb-4">
+                    <p className="flex items-center gap-1.5 truncate">
+                      <i className="fa-solid fa-paw text-primary text-[10px] sm:text-xs shrink-0"></i>
+                      <span>{animal.species}</span>
+                    </p>
+                    <p className="flex items-center gap-1.5 truncate">
+                      <i className="fa-solid fa-location-dot text-primary text-[10px] sm:text-xs shrink-0"></i>
+                      <span className="truncate">{animal.shelters?.shelter_name || "ศูนย์พักพิง"}</span>
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2 text-sm text-gray-500 mb-6 flex-1">
-                  <p className="flex items-center gap-2">
-                    <i className="fa-solid fa-paw w-4 text-primary"></i> {animal.species}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <i className="fa-solid fa-location-dot w-4 text-primary"></i> {animal.shelters?.shelter_name || "ศูนย์พักพิง"}
-                  </p>
-                </div>
-
+                {/* 3. ปรับขนาดปุ่มกดให้กะทัดรัดลง */}
                 <button
+                  type="button"
                   onClick={() => openModal(animal)}
-                  className="w-full font-mali font-semibold border-2 border-primary text-primary hover:bg-bgAccent py-2.5 rounded-xl transition duration-300 flex justify-center items-center gap-2"
+                  className="w-full font-mali font-semibold border border-primary text-primary hover:bg-bgAccent py-1.5 sm:py-2 rounded-xl transition duration-300 flex justify-center items-center gap-1.5 text-xs"
                 >
-                  <i className="fa-solid fa-eye"></i> ดูรายละเอียด
+                  <i className="fa-solid fa-eye text-[11px]"></i> ดูรายละเอียด
                 </button>
               </div>
             </div>
@@ -400,8 +412,8 @@ export default function CasesPage() {
                             type="button"
                             onClick={() => setCurrentImageIndex(idx)}
                             className={`h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer ${currentImageIndex === idx
-                                ? "border-primary scale-95 shadow-sm"
-                                : "border-transparent opacity-60 hover:opacity-100"
+                              ? "border-primary scale-95 shadow-sm"
+                              : "border-transparent opacity-60 hover:opacity-100"
                               }`}
                           >
                             <img src={imgUrl} alt={`thumb-${idx}`} className="w-full h-full object-cover" />

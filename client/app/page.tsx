@@ -1,9 +1,4 @@
 import Link from 'next/link';
-import { getCurrentUser } from '@/lib/auth';
-
-export default async function Home() {
-  // ดึงข้อมูล User ปัจจุบันจาก Session Cookie
-  const user = await getCurrentUser();
 
   return (
     <div className="w-full">
@@ -18,23 +13,9 @@ export default async function Home() {
             จับคู่อาสาสมัครกับสัตว์จรที่ต้องการความช่วยเหลือ ตามพื้นที่ เวลา และความพร้อมของคุณ
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* สลับปุ่มตามสถานะการเข้าสู่ระบบ โดยคง UI เดิมไว้ทุกประการ */}
-            {user ? (
-              <Link 
-                href="/cases" 
-                className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center"
-              >
-                <i className="fa-solid fa-paw mr-2"></i>ดูเคสช่วยเหลือสัตว์
-              </Link>
-            ) : (
-              <Link 
-                href="/register" 
-                className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center"
-              >
-                <i className="fa-solid fa-heart mr-2"></i>เริ่มเป็นอาสาสมัคร
-              </Link>
-            )}
-
+            <Link href="/register" className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-full transition duration-300 shadow-md text-center flex items-center justify-center">
+              <i className="fa-solid fa-heart mr-2"></i>เริ่มเป็นอาสาสมัคร
+            </Link>
             <Link href="/cases" className="font-mali font-semibold border-2 border-primary text-primary hover:bg-bgAccent px-6 py-3 rounded-full transition duration-300 text-center flex items-center justify-center">
               ดูเคสที่ต้องการความช่วยเหลือ <i className="fa-solid fa-magnifying-glass ml-2"></i>
             </Link>
@@ -119,7 +100,7 @@ export default async function Home() {
             <div className="p-5"><h3 className="bg-gray-200 h-6 w-1/2 rounded mb-4"></h3><div className="mt-auto w-full bg-gray-200 h-10 rounded-xl"></div></div>
           </div>
         </div>
-        
+
         <div className="mt-6 text-center sm:hidden">
           <Link href="/cases" className="font-mali font-semibold text-primary hover:text-primaryHover transition inline-flex items-center gap-1">
             ดูทั้งหมด <i className="fa-solid fa-arrow-right text-sm"></i>
@@ -136,6 +117,7 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start text-center gap-10 relative">
+            {/* เส้นเชื่อมตรงกลาง (โชว์เฉพาะจอคอม) */}
             <div className="hidden md:block absolute top-10 left-[12%] right-[12%] h-0.5 bg-gray-200 -z-10 w-3/4 mx-auto"></div>
 
             <div className="flex-1 flex flex-col items-center bg-white z-10 px-2 w-full">
@@ -190,6 +172,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }
