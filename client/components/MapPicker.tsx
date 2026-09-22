@@ -22,8 +22,8 @@ interface MapPickerProps {
 }
 
 export default function MapPicker({
-  initialLat = 13.7563,
-  initialLng = 100.5018,
+  initialLat = 8.6408,
+  initialLng = 99.8953,
   onLocationSelect,
 }: MapPickerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export default function MapPicker({
 
     // Initialize Map only once
     if (!mapInstanceRef.current) {
-      const map = L.map(mapRef.current).setView([initialLat, initialLng], 13);
+      const map = L.map(mapRef.current).setView([initialLat, initialLng], 15);
       mapInstanceRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

@@ -32,8 +32,8 @@ export default function ReportPage() {
   const [customStatus, setCustomStatus] = useState<string>("");
   const [locationText, setLocationText] = useState<string>("");
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
-    lat: 13.7563,
-    lng: 100.5018,
+    lat: 8.6408,
+    lng: 99.8953,
   });
 
   // Image upload states
@@ -363,7 +363,7 @@ export default function ReportPage() {
                 required
                 value={locationText}
                 onChange={(e) => setLocationText(e.target.value)}
-                placeholder="เช่น บริเวณหน้าอาคารเรียนรวม 5, ซอยหลังวัด, ปากซอยสุขุมวิท 22"
+                placeholder="เช่น บริเวณหน้าอาคารไทยบุรี ม.วลัยลักษณ์, หน้าหอพักลักษณานิเวศน์ 1, ศูนย์อาหารพฤกษานนท์"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 font-prompt text-sm focus:outline-none focus:border-primary transition"
               />
             </div>
