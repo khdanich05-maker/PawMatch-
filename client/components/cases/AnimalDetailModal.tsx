@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
 import { getAnimalImages } from "@/lib/animalImageHelper";
@@ -19,6 +20,8 @@ export default function AnimalDetailModal({
   onClose,
   onSuccess,
 }: Props) {
+  const router = useRouter();
+
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [hasUserRequested, setHasUserRequested] = useState<boolean>(false);
   const [isCheckingRequest, setIsCheckingRequest] = useState<boolean>(false);
@@ -26,6 +29,7 @@ export default function AnimalDetailModal({
   // ควบคุม Popup ยืนยันสีส้มพีช
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isCheckingProfile, setIsCheckingProfile] = useState<boolean>(false);
 
   // ตรวจสอบประวัติการขอน้องตัวนี้เฉพาะ User ปัจจุบัน
   useEffect(() => {
@@ -76,7 +80,50 @@ export default function AnimalDetailModal({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // ดำเนินการยื่นคำขอรับเลี้ยง
+  // 🛡️ ตรวจสอบว่ากรอกข้อมูลส่วนตัวและความพร้อมในตาราง users ครบหรือยัง
+  const handlePreAdoptCheck = async () => {
+    const currentUserId = currentUser?.id || currentUser?.user_id || currentUser?.userId;
+    if (!currentUserId) {
+      router.push("/login");
+      return;
+    }
+
+    setIsCheckingProfile(true);
+    try {
+      const { data: profile, error } = await supabase
+        .from("users")
+        .select("phone, accommodation_type, address, province, full_name")
+        .eq("user_id", currentUserId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      // เงื่อนไข: ต้องมีเบอร์โทร, ประเภทที่พัก และที่อยู่/ชื่อ
+      const isProfileComplete = Boolean(
+        profile?.phone?.trim() &&
+        profile?.accommodation_type?.trim() &&
+        (profile?.address?.trim() || profile?.province?.trim() || profile?.full_name?.trim())
+      );
+
+
+      // กรอกข้อมูล
+      // ถ้ายังไม่ครบ ให้แจ้งเตือนและพาไปหน้ากรอกข้อมูลโปรไฟล์ทันที
+      if (!isProfileComplete) {
+        //alert("กรุณากรอกข้อมูลส่วนตัวและความพร้อมในการเลี้ยงสัตว์ให้ครบถ้วนก่อนยื่นคำขอรับเลี้ยง");
+        router.push("/profile");
+        return;
+      }
+
+      // ถ้ากรอกข้อมูลครบแล้ว ให้เปิด Popup ยืนยันตามระบบเดิม
+      setIsConfirmOpen(true);
+    } catch (err: any) {
+      alert("เกิดข้อผิดพลาดในการตรวจสอบโปรไฟล์: " + (err.message || err));
+    } finally {
+      setIsCheckingProfile(false);
+    }
+  };
+
+  // ดำเนินการยื่นคำขอรับเลี้ยงหลังกดยืนยันใน Popup
   const handleExecuteAdopt = async () => {
     if (!selectedAnimal || !currentUser) return;
     setIsSubmitting(true);
@@ -271,7 +318,7 @@ export default function AnimalDetailModal({
                 >
                   <i className="fa-solid fa-lock"></i> เข้าสู่ระบบเพื่อขอรับเลี้ยง
                 </Link>
-              ) : isCheckingRequest ? (
+              ) : isCheckingRequest || isCheckingProfile ? (
                 <button
                   type="button"
                   disabled
@@ -290,7 +337,7 @@ export default function AnimalDetailModal({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setIsConfirmOpen(true)}
+                  onClick={handlePreAdoptCheck}
                   className="w-full font-mali font-semibold bg-[#C07055] hover:bg-[#A85D45] text-white py-3 rounded-xl shadow-md flex justify-center items-center gap-2 transition duration-200 cursor-pointer"
                 >
                   <i className="fa-solid fa-heart"></i> ยื่นคำขอรับเลี้ยงน้อง 🐾
