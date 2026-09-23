@@ -12,9 +12,4 @@ export interface User {
     date_of_birth?: string | null;
     salary?: number | null;
     animal_count?: number;
-    full_name?: string | null;
-    address?: string | null;
-    province?: string | null;
-    pet_permission?: boolean | null;
-    residence_note?: string | null;
 }

@@ -82,8 +82,7 @@ function LoginForm() {
             // }, 800);
             window.setTimeout(() => {
                 // ส่งตรงไปยังหน้าแรก (Landing Page) ทันที
-                const next = searchParams.get("next");
-                router.push(next && next.startsWith("/") ? next : (data.redirectTo || "/"));
+                router.push(data.redirectTo || "/");
                 router.refresh();
             }, 800);
 
