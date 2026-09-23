@@ -216,20 +216,35 @@ export default function Navbar() {
           </Link>
 
 
-
-          {/* เมนูจัดการสัตว์สำหรับ Admin */}
-          {user?.role === "admin" && (
+          {/* เมนูสำหรับผู้ดูแลระบบ */}
+          {(user?.role === "admin" || user?.role === "shelter") && (
             <div className="pt-3 mt-3 border-t border-stone-100">
               <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-3 mb-2">
                 ผู้ดูแลระบบ (Admin)
               </p>
               <Link
+                href="/admin/profile"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-user-shield w-5 text-center text-stone-400"></i>
+                <span>โปรไฟล์แอดมิน</span>
+              </Link>
+              <Link
                 href="/admin/animals"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-shield-cat w-5 text-center text-stone-400"></i>
+                <span>จัดการข้อมูลสัตว์ (Admin)</span>
+              </Link>
+              <Link
+                href="/admin/adoptions"
                 onClick={() => setIsLeftDrawerOpen(false)}
                 className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-[#FDF0EB] text-[#C07055] font-semibold hover:bg-[#fae2d9] transition"
               >
-                <i className="fa-solid fa-shield-cat w-5 text-center text-[#C07055]"></i>
-                <span>จัดการข้อมูลสัตว์ (Admin)</span>
+                <i className="fa-solid fa-file-circle-check w-5 text-center text-[#C07055]"></i>
+                <span>ตรวจสอบคำขอรับเลี้ยง</span>
               </Link>
             </div>
           )}

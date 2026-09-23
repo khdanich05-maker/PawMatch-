@@ -1,0 +1,20 @@
+วิธีติดตั้งไฟล์ชุดนี้
+
+1. เปิดโฟลเดอร์ PawMatch-/client ของคุณ
+2. แตกไฟล์ zip นี้ลงในโฟลเดอร์ client และเลือก Replace files when asked
+3. ห้ามแทนที่หรือลบไฟล์ .env.local
+4. ตรวจว่ามี SUPABASE_SERVICE_ROLE_KEY ใน .env.local แล้ว (เพื่อนที่ทำระบบ Login ใช้อยู่)
+5. รัน npm run dev แล้วทดสอบตามรายการด้านล่าง
+
+ทดสอบ
+- เปิด /cases แบบยังไม่ล็อกอิน แล้วกดขอรับเลี้ยง: ต้องถูกพาไป /login
+- ล็อกอินบัญชี role=user แล้วส่งฟอร์ม: ต้องสร้างข้อมูลใน matches และอัปเดต users
+- เปิด /profile: ต้องเห็นและแก้ข้อมูลส่วนตัวได้
+- เปิด /adoption-requests: ต้องเห็นคำขอของบัญชีที่ล็อกอินเท่านั้น
+- ล็อกอิน admin หรือ shelter แล้วเปิด /admin/adoptions: ต้องเห็นคำขอและกดอนุมัติ/ไม่อนุมัติได้
+
+หมายเหตุ schema ที่ชุดนี้ใช้
+users: full_name, address, province, pet_permission, residence_note
+matches: care_time, monthly_budget, family_members, adoption_reason,
+         rejection_reason, reviewed_at, reviewed_by, match_status
+match_status: รออนุมัติ, อนุมัติ, ปฏิเสธ
