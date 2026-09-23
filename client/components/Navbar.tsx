@@ -176,7 +176,7 @@ export default function Navbar() {
 
 
           <Link
-            href="/profile"
+            href="/"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
@@ -184,19 +184,9 @@ export default function Navbar() {
             <span className="font-medium">หน้าหลัก</span>
           </Link>
 
-          {user?.role === "admin" && (
-            <Link
-              href="/admin/shelter-management"
-              onClick={() => setIsLeftDrawerOpen(false)}
-              className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
-            >
-              <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
-              <span className="font-medium">จัดการศูนย์พักพิง</span>
-            </Link>
-          )}
 
           <Link
-            href="/profile"
+            href="/cases"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
@@ -204,7 +194,7 @@ export default function Navbar() {
             <span className="font-medium">เคสที่ต้องการความช่วยเหลือ</span>
           </Link>
 
-          
+
 
           <Link
             href="/report"
@@ -217,7 +207,7 @@ export default function Navbar() {
 
 
           <Link
-            href="/report"
+            href="/about"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
@@ -241,6 +231,24 @@ export default function Navbar() {
                 <i className="fa-solid fa-shield-cat w-5 text-center text-[#C07055]"></i>
                 <span>จัดการข้อมูลสัตว์ (Admin)</span>
               </Link>
+
+              <Link
+                href="/admin/shelter-management"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+                <span className="font-medium">จัดการศูนย์พักพิง</span>
+              </Link>
+
+
+
+
+
+
+
+
+
             </div>
           )}
         </div>
