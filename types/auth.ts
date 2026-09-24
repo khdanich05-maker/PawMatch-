@@ -9,7 +9,7 @@ export interface AuthUser {
   username: string;
   email: string | null;
   phone: string | null;
-  role: UserRole; // 'user' | 'shelter' | 'admin'
+  role: UserRole; 
   shelter_id?: string | null;
 }
 

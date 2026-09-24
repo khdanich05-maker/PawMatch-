@@ -110,7 +110,7 @@ export default function AnimalDetailModal({
       // ถ้ายังไม่ครบ ให้แจ้งเตือนและพาไปหน้ากรอกข้อมูลโปรไฟล์ทันที
       if (!isProfileComplete) {
         //alert("กรุณากรอกข้อมูลส่วนตัวและความพร้อมในการเลี้ยงสัตว์ให้ครบถ้วนก่อนยื่นคำขอรับเลี้ยง");
-        router.push("/profile");
+        router.push("/user/edit");
         return;
       }
 

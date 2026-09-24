@@ -166,7 +166,7 @@ export default function Navbar() {
           </p>
 
           <Link
-            href="/profile"
+            href="/user/edit"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >

@@ -1,47 +1,36 @@
-# 1. ขั้นตอนการดึงโค้ดไปรันและเริ่มทำงานส่ง
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-### 1 โคลนโปรเจกต์ลงเครื่อง:ให้เพื่อนเปิด Terminal ในโฟลเดอร์ที่ต้องการเก็บงาน แล้วรัน:
+## Getting Started
 
-    git clone https://github.com/khdanich05-maker/PawMatch-.git
-    cd PawMatch-
+First, run the development server:
 
-### ** 2 ติดตั้ง Dependencies (node_modules) **:
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-**_เพราะเราตัด node_modules ออกจาก Git เพื่อนต้องสั่งติดตั้ง library ลงในเครื่องตัวเองก่อน_**
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-    ติดตั้งฝั่ง Client:
-    cd client
-    npm install
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-    ติดตั้งฝั่ง Server (ถ้าโฟลเดอร์ server มี package.json ให้เข้าไปลงด้วย):
-    npm init -y
-    cd server
-    npm install
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### 3 ตั้งค่า Environment Variables (ถ้ามี):หากโปรเจกต์มีไฟล์ .env หรือ .env.local (เช่น Database URL หรือ API Key) ที่ถูก ignore ไว้ ต้องส่งค่าเหล่านั้นให้เพื่อน แล้วให้เพื่อนสร้างไฟล์ .env.local ขึ้นมาในโฟลเดอร์ client/
+## Learn More
 
-### 4 รัน Development Server:
+To learn more about Next.js, take a look at the following resources:
 
-    เข้าไปที่โฟลเดอร์ client แล้วสั่งรันหน้าเว็บ:
-    cd client
-    npm run dev
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-**_เปิดเบราว์เซอร์ที่ http://localhost:3000 เริ่มทดสอบและเขียนโค้ด_**
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-# 2. แนวทางปฏิบัติเมื่อทำงานร่วมกัน (Best Practice)
+## Deploy on Vercel
 
-### ก่อนเริ่มเขียนโค้ด ให้ดึงโค้ดล่าสุดลงมาก่อนเสมอด้วยคำสั่ง:
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-    git pull origin main
-
-### แยก Branch ทำงาน: แนะนำให้สร้าง Branch ใหม่สำหรับฟีเจอร์ของตัวเอง แทนที่จะ push เข้า main โดยตรง:
-
-**_ตัวอย่าง_**
-
-    git checkout -b feature/login-page หรือ git checkout -b fix/navbar-bug
-
-### เขียนโค้ดได้ตามปกติ...
-
-    git add .
-    git commit -m "feat: add login page UI"
-    git push origin feature/login-page
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
