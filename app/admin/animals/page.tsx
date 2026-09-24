@@ -37,6 +37,9 @@ export default function AdminAnimalsPage() {
     setFilterProvince,
     filterColor,
     setFilterColor,
+    filterShelter,      // 👈 ดึงค่า Filter ศูนย์พักพิง
+    setFilterShelter,   // 👈 ดึงฟังก์ชันอัปเดตศูนย์พักพิง
+    handleResetFilter,  // 👈 ดึงฟังก์ชันล้างค่าตัวกรอง
     isFilterOpen,
     setIsFilterOpen,
     confirmModal,
@@ -64,7 +67,7 @@ export default function AdminAnimalsPage() {
         const data = await res.json();
         const role = data?.user?.role;
 
-        // ✅ แก้เป็น: ดีดกลับหน้าแรกทันทีโดยไม่ขึ้นกล่อง Alert
+        // สกัดกั้นถ้าไม่ใช่ admin หรือ shelter
         if (role !== "admin" && role !== "shelter") {
           router.replace("/");
           return;
@@ -111,7 +114,7 @@ export default function AdminAnimalsPage() {
         </button>
       </div>
 
-      {/* กล่องตัวกรอง */}
+      {/* กล่องตัวกรอง (ส่ง Props ตัวกรองศูนย์พักพิงเพิ่ม) */}
       <AnimalFilterBar
         isFilterOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
@@ -125,6 +128,10 @@ export default function AdminAnimalsPage() {
         setFilterColor={setFilterColor}
         filterProvince={filterProvince}
         setFilterProvince={setFilterProvince}
+        shelters={shelters}
+        filterShelter={filterShelter}
+        setFilterShelter={setFilterShelter}
+        onResetFilter={handleResetFilter}
       />
 
       {/* รายการ Card แสดงผล */}
@@ -157,12 +164,13 @@ export default function AdminAnimalsPage() {
                 />
                 <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm flex items-center gap-1.5 z-10">
                   <span
-                    className={`w-2 h-2 rounded-full ${animal.status === "รอคนดูแล"
+                    className={`w-2 h-2 rounded-full ${
+                      animal.status === "รอคนดูแล"
                         ? "bg-green-500 animate-pulse"
                         : animal.status === "รอการอนุมัติ"
-                          ? "bg-orange-400"
-                          : "bg-gray-400"
-                      }`}
+                        ? "bg-orange-400"
+                        : "bg-gray-400"
+                    }`}
                   ></span>
                   {animal.status}
                 </span>
@@ -172,8 +180,9 @@ export default function AdminAnimalsPage() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-itim text-lg sm:text-2xl text-textMain truncate pr-1">{animal.name}</h3>
                   <span
-                    className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
-                      }`}
+                    className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm ${
+                      animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
+                    }`}
                   >
                     <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
                   </span>
@@ -236,7 +245,7 @@ export default function AdminAnimalsPage() {
         title={confirmModal?.title || ""}
         animalName={confirmModal?.animalName || ""}
         message={confirmModal?.message || ""}
-        onConfirm={confirmModal?.onConfirm || (() => { })}
+        onConfirm={confirmModal?.onConfirm || (() => {})}
         onCancel={closeConfirmModal}
       />
 
