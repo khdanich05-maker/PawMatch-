@@ -1,6 +1,4 @@
 // types/user.ts
-
-// กำหนดเฉพาะ role ที่มีจริงในระบบ (ไม่มี shelter)
 export type UserRole = 'user' | 'admin';
 
 export interface User {
