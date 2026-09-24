@@ -1,6 +1,4 @@
 // types/user.ts
-
-// กำหนดเฉพาะ role ที่มีจริงในระบบ (ไม่มี shelter)
 export type UserRole = 'user' | 'admin';
 
 export interface User {
@@ -17,6 +15,7 @@ export interface User {
   pet_permission: boolean;
   address: string | null;
   province: string | null;
+  address_details?: AddressDetails;
   animal_count: number;
   residence_note: string | null;
 }
@@ -30,6 +29,19 @@ export interface UpdateProfilePayload {
   pet_permission?: boolean;
   address: string;
   province: string;
+  address_details: AddressDetails;
   animal_count: number;
   residence_note: string;
+}
+
+export interface AddressDetails {
+  house_no: string;
+  village: string;
+  moo: string;
+  soi: string;
+  road: string;
+  province: string;
+  district: string;
+  subdistrict: string;
+  zipcode: string;
 }
