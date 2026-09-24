@@ -17,7 +17,7 @@ export interface User {
   pet_permission: boolean;
   address: string | null;
   province: string | null;
-  address_details: AddressDetails;
+  address_details?: AddressDetails;
   animal_count: number;
   residence_note: string | null;
 }
