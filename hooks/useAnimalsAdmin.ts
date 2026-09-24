@@ -59,17 +59,18 @@ export function useAnimalsAdmin() {
   const [filterAge, setFilterAge] = useState("all");
   const [filterProvince, setFilterProvince] = useState("all");
   const [filterColor, setFilterColor] = useState("all");
+  const [filterShelter, setFilterShelter] = useState("all"); // 👈 เพิ่ม State กรองศูนย์พักพิง
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
+
   // 🛡️ ตรวจสอบสิทธิ์: ถ้าไม่ใช่ admin หรือ shelter ให้ดีดออกทันที
   useEffect(() => {
     async function verifyAdminRole() {
       try {
         const res = await fetch("/api/auth/me");
         if (!res.ok) {
-          //alert("กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน");
           router.replace("/login");
           return;
         }
@@ -77,15 +78,13 @@ export function useAnimalsAdmin() {
         const data = await res.json();
         const userRole = data?.user?.role;
 
-        // ถ้าล็อกอินเป็น role ทั่วไป (user) ไม่ใช่ admin/shelter
         if (userRole !== "admin" && userRole !== "shelter") {
-          //alert("⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (สำหรับเจ้าหน้าที่ศูนย์พักพิงเท่านั้น)");
           router.replace("/");
           return;
         }
 
-        setCheckingAuth(false); // ผ่านสิทธิ์ ให้อนุญาตเปิดหน้าได้
-      } catch (err) {
+        setCheckingAuth(false);
+      } catch {
         router.replace("/");
       }
     }
@@ -107,7 +106,7 @@ export function useAnimalsAdmin() {
     title: "",
     animalName: "",
     message: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   // 🌟 State สำหรับ Toast แจ้งเตือน
@@ -120,7 +119,7 @@ export function useAnimalsAdmin() {
     setToast({ show: true, message });
     setTimeout(() => {
       setToast({ show: false, message: "" });
-    }, 3000); // แสดงค้าง 3 วินาทีแล้วจางหาย
+    }, 3000);
   };
 
   const closeConfirmModal = () => {
@@ -129,7 +128,9 @@ export function useAnimalsAdmin() {
 
   // ดึงศูนย์พักพิง
   const fetchShelters = async () => {
-    const { data } = await supabase.from("shelters").select("shelter_id, shelter_name, province");
+    const { data } = await supabase
+      .from("shelters")
+      .select("shelter_id, shelter_name, province");
     if (data) {
       setShelters(data);
       if (data.length > 0 && !formData.shelter_id) {
@@ -138,7 +139,7 @@ export function useAnimalsAdmin() {
     }
   };
 
-  // ดึงข้อมูลสัตว์ทั้งหมด
+  // ดึงข้อมูลสัตว์ทั้งหมดและคัดกรองตาม Filter
   const fetchAnimals = async () => {
     setLoading(true);
     try {
@@ -151,6 +152,7 @@ export function useAnimalsAdmin() {
       if (filterGender !== "all") query = query.eq("gender", filterGender);
       if (filterAge !== "all") query = query.eq("age", filterAge);
       if (filterColor !== "all") query = query.eq("color", filterColor);
+      if (filterShelter !== "all") query = query.eq("shelter_id", filterShelter); // 👈 กรองระดับ Database query
 
       const { data, error } = await query;
       if (error) {
@@ -158,7 +160,9 @@ export function useAnimalsAdmin() {
       } else {
         let result = (data as Animal[]) || [];
         if (filterProvince !== "all") {
-          result = result.filter((item) => item.shelters?.province === filterProvince);
+          result = result.filter(
+            (item) => item.shelters?.province === filterProvince
+          );
         }
         setAnimals(result);
       }
@@ -169,10 +173,20 @@ export function useAnimalsAdmin() {
     }
   };
 
+  // 🔄 ล้างค่าตัวกรองทั้งหมดกลับเป็นค่าเริ่มต้น
+  const handleResetFilter = () => {
+    setFilterSpecies("all");
+    setFilterGender("all");
+    setFilterAge("all");
+    setFilterProvince("all");
+    setFilterColor("all");
+    setFilterShelter("all");
+  };
+
   useEffect(() => {
     fetchAnimals();
     fetchShelters();
-  }, [filterSpecies, filterGender, filterAge, filterProvince, filterColor]);
+  }, [filterSpecies, filterGender, filterAge, filterProvince, filterColor, filterShelter]);
 
   // ฟังก์ชันอัปโหลดรูปภาพ
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +208,9 @@ export function useAnimalsAdmin() {
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage.from("animal-images").getPublicUrl(filePath);
+        const { data } = supabase.storage
+          .from("animal-images")
+          .getPublicUrl(filePath);
         if (data?.publicUrl) uploadedUrls.push(data.publicUrl);
       }
 
@@ -295,7 +311,10 @@ export function useAnimalsAdmin() {
       };
 
       if (isEditing && editingId) {
-        const { error } = await supabase.from("animals").update(payload).eq("animal_id", editingId);
+        const { error } = await supabase
+          .from("animals")
+          .update(payload)
+          .eq("animal_id", editingId);
         if (error) throw error;
         showToast("แก้ไขข้อมูลสัตว์สำเร็จแล้วเรียบร้อย! 🐾");
       } else {
@@ -337,11 +356,15 @@ export function useAnimalsAdmin() {
       type: "delete",
       title: "ยืนยันการลบข้อมูลสัตว์จรจัด",
       animalName: animalName,
-      message: "ข้อมูลของสัตว์ตัวนี้และประวัติทั้งหมดจะถูกลบออกจากฐานข้อมูลอย่างถาวรและไม่สามารถกู้คืนได้",
+      message:
+        "ข้อมูลของสัตว์ตัวนี้และประวัติทั้งหมดจะถูกลบออกจากฐานข้อมูลอย่างถาวรและไม่สามารถกู้คืนได้",
       onConfirm: async () => {
         closeConfirmModal();
         try {
-          const { error } = await supabase.from("animals").delete().eq("animal_id", animalId);
+          const { error } = await supabase
+            .from("animals")
+            .delete()
+            .eq("animal_id", animalId);
           if (error) throw error;
           showToast(`ลบข้อมูล "${animalName}" สำเร็จแล้วเรียบร้อย 🗑️`);
           setAnimals((prev) => prev.filter((item) => item.animal_id !== animalId));
@@ -378,11 +401,14 @@ export function useAnimalsAdmin() {
     setFilterProvince,
     filterColor,
     setFilterColor,
+    filterShelter,      // 👈 ส่งออกไปใช้งาน
+    setFilterShelter,   // 👈 ส่งออกไปใช้งาน
+    handleResetFilter,  // 👈 ส่งออกไปใช้งาน
     isFilterOpen,
     setIsFilterOpen,
     confirmModal,
     closeConfirmModal,
-    toast, // 👈 ส่ง toast state ออกไป
+    toast,
     handleFileUpload,
     handleRemoveImage,
     handleVaccineToggle,
