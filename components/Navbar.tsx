@@ -174,6 +174,15 @@ export default function Navbar() {
             <span className="font-medium">จัดการโปรไฟล์</span>
           </Link>
 
+          <Link
+            href="/care-tracking"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">อัปเดตสถานะการเลี้ยง</span>
+          </Link>
+
 
           <Link
             href="/"
@@ -259,6 +268,15 @@ export default function Navbar() {
               >
                 <i className="fa-solid fa-clipboard-check text-stone-400 w-5 text-center"></i>
                 <span className="font-medium">ตรวจสอบการแจ้งพบสัตว์</span>
+              </Link>
+
+              <Link
+                href="/admin/care-monitoring"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center"></i>
+                <span className="font-medium">ตรวจสอบการดูแลสัตว์</span>
               </Link>
 
 
