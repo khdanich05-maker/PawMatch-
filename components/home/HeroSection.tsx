@@ -21,8 +21,8 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-16 sm:mb-20 mt-6 sm:mt-10">
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[500px] sm:min-h-[560px] flex items-center">
+    <section className="w-full max-w-[1440px] mx-auto px-2 sm:px-4 mb-8 sm:mb-8 mt-0">
+      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[600px] sm:min-h-[680px] flex items-center">
         {HERO_BACKGROUND_IMAGES.map((imgUrl, index) => (
           <img
             key={index}
