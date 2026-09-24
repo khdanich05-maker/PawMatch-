@@ -240,8 +240,15 @@ export default function Navbar() {
                 <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
                 <span className="font-medium">จัดการศูนย์พักพิง</span>
               </Link>
-
-
+              
+              <Link
+                href="/admin/dashboard"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+                <span className="font-medium">รายงานและประวัติย้อนหลัง</span>
+              </Link>
 
 
 
