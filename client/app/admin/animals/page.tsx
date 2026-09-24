@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAnimalImages } from "@/lib/animalImageHelper";
 import { useAnimalsAdmin } from "@/hooks/useAnimalsAdmin";
 import AnimalFilterBar from "@/components/admin/animals/AnimalFilterBar";
@@ -8,6 +10,9 @@ import AnimalPreviewModal from "@/components/admin/animals/AnimalPreviewModal";
 import ActionConfirmModal from "@/components/admin/animals/ActionConfirmModal";
 
 export default function AdminAnimalsPage() {
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   const {
     animals,
     shelters,
@@ -36,7 +41,7 @@ export default function AdminAnimalsPage() {
     setIsFilterOpen,
     confirmModal,
     closeConfirmModal,
-    toast, // 👈 ดึงค่า toast มาใช้
+    toast,
     handleFileUpload,
     handleRemoveImage,
     handleVaccineToggle,
@@ -45,6 +50,42 @@ export default function AdminAnimalsPage() {
     handleSaveAnimal,
     handleDeleteAnimal,
   } = useAnimalsAdmin();
+
+  // 🛡️ ตรวจสอบสิทธิ์ Admin: สกัดกั้นผู้ใช้ role ทั่วไป
+  useEffect(() => {
+    async function verifyAdmin() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          router.replace("/login");
+          return;
+        }
+
+        const data = await res.json();
+        const role = data?.user?.role;
+
+        // ✅ แก้เป็น: ดีดกลับหน้าแรกทันทีโดยไม่ขึ้นกล่อง Alert
+        if (role !== "admin" && role !== "shelter") {
+          router.replace("/");
+          return;
+        }
+
+        setCheckingAuth(false);
+      } catch {
+        router.replace("/");
+      }
+    }
+    verifyAdmin();
+  }, [router]);
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bgMain font-mali text-textMain">
+        <i className="fa-solid fa-shield-cat text-4xl text-primary mb-3 animate-bounce"></i>
+        <p className="text-base text-gray-500">กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...</p>
+      </div>
+    );
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 min-h-screen">
@@ -116,13 +157,12 @@ export default function AdminAnimalsPage() {
                 />
                 <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm flex items-center gap-1.5 z-10">
                   <span
-                    className={`w-2 h-2 rounded-full ${
-                      animal.status === "รอคนดูแล"
+                    className={`w-2 h-2 rounded-full ${animal.status === "รอคนดูแล"
                         ? "bg-green-500 animate-pulse"
                         : animal.status === "รอการอนุมัติ"
-                        ? "bg-orange-400"
-                        : "bg-gray-400"
-                    }`}
+                          ? "bg-orange-400"
+                          : "bg-gray-400"
+                      }`}
                   ></span>
                   {animal.status}
                 </span>
@@ -132,9 +172,8 @@ export default function AdminAnimalsPage() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-itim text-lg sm:text-2xl text-textMain truncate pr-1">{animal.name}</h3>
                   <span
-                    className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm ${
-                      animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
-                    }`}
+                    className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
+                      }`}
                   >
                     <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
                   </span>
@@ -197,7 +236,7 @@ export default function AdminAnimalsPage() {
         title={confirmModal?.title || ""}
         animalName={confirmModal?.animalName || ""}
         message={confirmModal?.message || ""}
-        onConfirm={confirmModal?.onConfirm || (() => {})}
+        onConfirm={confirmModal?.onConfirm || (() => { })}
         onCancel={closeConfirmModal}
       />
 

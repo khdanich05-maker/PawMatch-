@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Animal } from "@/types/animal";
@@ -60,6 +61,38 @@ export function useAnimalsAdmin() {
   const [filterColor, setFilterColor] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  // 🛡️ ตรวจสอบสิทธิ์: ถ้าไม่ใช่ admin หรือ shelter ให้ดีดออกทันที
+  useEffect(() => {
+    async function verifyAdminRole() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          //alert("กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน");
+          router.replace("/login");
+          return;
+        }
+
+        const data = await res.json();
+        const userRole = data?.user?.role;
+
+        // ถ้าล็อกอินเป็น role ทั่วไป (user) ไม่ใช่ admin/shelter
+        if (userRole !== "admin" && userRole !== "shelter") {
+          //alert("⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (สำหรับเจ้าหน้าที่ศูนย์พักพิงเท่านั้น)");
+          router.replace("/");
+          return;
+        }
+
+        setCheckingAuth(false); // ผ่านสิทธิ์ ให้อนุญาตเปิดหน้าได้
+      } catch (err) {
+        router.replace("/");
+      }
+    }
+
+    verifyAdminRole();
+  }, [router]);
+
   // State สำหรับกล่องยืนยัน
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -74,7 +107,7 @@ export function useAnimalsAdmin() {
     title: "",
     animalName: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   // 🌟 State สำหรับ Toast แจ้งเตือน
@@ -321,6 +354,7 @@ export function useAnimalsAdmin() {
   };
 
   return {
+    checkingAuth,
     animals,
     shelters,
     loading,
