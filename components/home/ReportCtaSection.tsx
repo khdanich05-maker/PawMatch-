@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function ReportCtaSection() {
   return (
-    <section className="max-w-5xl mx-auto px-6 mb-20">
+    <section className="max-w-5xl mx-auto px-6 mb-10">
       <div className="bg-bgAccent rounded-3xl p-10 md:p-14 text-center relative overflow-hidden shadow-sm border border-orange-100">
         <i className="fa-solid fa-paw absolute -top-10 -left-10 text-9xl text-white opacity-60"></i>
         <i className="fa-solid fa-paw absolute -bottom-10 -right-10 text-9xl text-white opacity-60"></i>
