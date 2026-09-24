@@ -1,5 +1,5 @@
 // types/user.ts
-export type UserRole = 'user' | 'shelter' | 'admin';
+export type UserRole = 'user' | 'admin';
 
 export interface User {
   user_id: string;

@@ -17,7 +17,7 @@ export async function requireAdmin(): Promise<Session> {
     redirect("/login");
   }
 
-  if (session.role !== "admin" && session.role !== "shelter") {
+  if (session.role !== "admin") {
     redirect("/dashboard");
   }
 
