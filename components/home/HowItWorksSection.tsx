@@ -1,6 +1,6 @@
 export default function HowItWorksSection() {
   return (
-    <section className="mb-24 py-16 border-y border-gray-100 bg-white">
+    <section className="mb-10 py-16 border-y border-gray-100 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="font-mali font-semibold text-3xl text-textMain mb-2">ระบบ GoHome ทำงานอย่างไร?</h2>
@@ -42,7 +42,7 @@ export default function HowItWorksSection() {
 
           <div className="flex-1 flex flex-col items-center bg-white z-10 px-2 w-full">
             <div className="w-20 h-20 bg-bgAccent rounded-full flex items-center justify-center text-primary text-3xl mb-4 shadow-sm border-4 border-white">
-              <i className="fa-solid fa-house-chimney-heart"></i>
+              <i className="fa-solid fa-heart"></i>
             </div>
             <h4 className="font-mali font-semibold text-lg mb-2">4. ส่งมอบ & บันทึก Care Log</h4>
             <p className="text-xs text-gray-500 max-w-[210px] leading-relaxed">

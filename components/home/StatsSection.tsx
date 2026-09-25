@@ -36,7 +36,7 @@ export default function StatsSection() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-16 sm:mb-20">
+    <section className="w-full max-w-[1440px] mx-auto px-2 sm:px-4 mb-6 sm:mb-8 mt-2 sm:mt-4">
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 py-6 px-3 sm:p-8 grid grid-cols-3 divide-x divide-gray-100 items-center">
         <div className="text-center px-1 sm:px-4">
           <div className="font-mali font-semibold text-2xl sm:text-4xl text-primary mb-1 min-h-[32px] sm:min-h-[44px] flex items-center justify-center">

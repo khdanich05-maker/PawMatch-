@@ -18,6 +18,7 @@ export default function Footer() {
         <div>
           <h4 className="font-mali font-semibold text-lg mb-4">เมนูหลัก</h4>
           <ul className="space-y-2 text-gray-500">
+            <li><Link href="/cases" className="hover:text-primary transition">รับเลี้ยงสัตว์</Link></li>
             <li><Link href="/report" className="hover:text-primary transition">แจ้งพบสัตว์จรจัด</Link></li>
             <li><Link href="/register" className="hover:text-primary transition">สมัครเป็นอาสาสมัคร</Link></li>
             <li><Link href="/shelters" className="hover:text-primary transition">รายชื่อศูนย์พักพิง</Link></li>

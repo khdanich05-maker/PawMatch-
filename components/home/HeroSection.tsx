@@ -21,8 +21,8 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-16 sm:mb-20 mt-6 sm:mt-10">
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[500px] sm:min-h-[560px] flex items-center">
+    <section className="w-full max-w-[1440px] mx-auto px-2 sm:px-4 mb-8 sm:mb-8 mt-0">
+      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[600px] sm:min-h-[680px] flex items-center">
         {HERO_BACKGROUND_IMAGES.map((imgUrl, index) => (
           <img
             key={index}
@@ -52,16 +52,16 @@ export default function HeroSection() {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/quiz"
+              href="/report"
               className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-7 py-3.5 rounded-2xl transition duration-300 shadow-lg text-center flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
             >
-              <i className="fa-solid fa-wand-magic-sparkles"></i> ทำแบบประเมินจับคู่ใจ
+              <i className="fa-solid fa-wand-magic-sparkles"></i> แจ้งพบสัตว์จรจัด
             </Link>
             <Link
               href="/cases"
               className="font-mali font-semibold bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/40 px-7 py-3.5 rounded-2xl transition duration-300 text-center flex items-center justify-center gap-2"
             >
-              ดูเคสสัตว์ที่รอคอยบ้าน <i className="fa-solid fa-arrow-right text-xs"></i>
+              ตามหาสัตว์เลี้ยง <i className="fa-solid fa-arrow-right text-xs"></i>
             </Link>
           </div>
 
