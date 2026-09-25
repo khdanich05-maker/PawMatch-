@@ -60,7 +60,7 @@ export default function Navbar() {
   const adoptionMenu = user?.role === "admin"
     ? { href: "/admin/adoptions", label: "" }
     : user?.role === "user"
-      ? { href: "/adoption-requests", label: "" }
+      ? { href: "", label: "" }
       : null;
   const avatarLetter = displayName.slice(0, 1).toUpperCase();
 
@@ -80,7 +80,6 @@ export default function Navbar() {
           <Link href="/cases" className="hover:text-[#C07055] transition duration-200">เคสที่ต้องการความช่วยเหลือ</Link>
           <Link href="/report" className="hover:text-[#C07055] transition duration-200">แจ้งพบเจอสัตว์</Link>
           <Link href="/about" className="hover:text-[#C07055] transition duration-200">เกี่ยวกับเรา</Link>
-          {adoptionMenu && <Link href={adoptionMenu.href} aria-current={pathname.startsWith(adoptionMenu.href) ? "page" : undefined} className="whitespace-nowrap hover:text-[#C07055] transition duration-200">{adoptionMenu.label}</Link>}
         </div>
 
         {/* ฝั่งขวา Navbar */}
@@ -182,16 +181,6 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/care-tracking"
-            onClick={() => setIsLeftDrawerOpen(false)}
-            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
-          >
-            <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center"></i>
-            <span className="font-medium">อัปเดตสถานะการเลี้ยง</span>
-          </Link>
-
-
-          <Link
             href="/"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
@@ -199,7 +188,6 @@ export default function Navbar() {
             <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
             <span className="font-medium">หน้าหลัก</span>
           </Link>
-
 
           <Link
             href="/cases"
@@ -210,8 +198,6 @@ export default function Navbar() {
             <span className="font-medium">เคสที่ต้องการความช่วยเหลือ</span>
           </Link>
 
-
-
           <Link
             href="/report"
             onClick={() => setIsLeftDrawerOpen(false)}
@@ -219,6 +205,19 @@ export default function Navbar() {
           >
             <i className="fa-solid fa-map-location-dot text-stone-400 w-5 text-center"></i>
             <span>แจ้งพบเจอสัตว์</span>
+          </Link>
+
+
+
+
+
+          <Link
+            href="/care-tracking"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">อัปเดตสถานะการเลี้ยง</span>
           </Link>
 
           <Link
@@ -251,7 +250,6 @@ export default function Navbar() {
 
 
           {/* เมนูจัดการสัตว์สำหรับ Admin */}
-          {adoptionMenu && <Link href={adoptionMenu.href} onClick={() => setIsLeftDrawerOpen(false)} aria-current={pathname.startsWith(adoptionMenu.href) ? "page" : undefined} className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"><i aria-hidden="true" className="fa-solid fa-paw text-stone-400 w-5 text-center"></i><span className="font-medium">{adoptionMenu.label}</span></Link>}
 
           {user?.role === "admin" && (
             <div className="pt-3 mt-3 border-t border-stone-100">
