@@ -30,7 +30,7 @@ const TEAM_MEMBERS = [
     name: "ทีมงาน",
     role: "Feature 4 · Adoption Request",
     desc: "ระบบขอรับเลี้ยงสัตว์ ยื่นใบสมัคร และตรวจสอบสถานะการอนุมัติ",
-    icon: "fa-solid fa-house-heart",
+    icon: "fa-solid fa-hand-holding-heart",
     color: "from-pink-100 to-pink-50",
     iconColor: "text-pink-500",
   },
