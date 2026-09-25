@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
+import { addressCoordinates, addressWithCoordinates } from "@/lib/shelterAddress";
+import styles from "./ShelterManagement.module.css";
+
+const MapPicker = dynamic(() => import("@/components/MapPicker"), {
+  ssr: false,
+  loading: () => <p className="p-6 text-sm text-gray-500">กำลังโหลดแผนที่...</p>,
+});
 
 type Shelter = {
   shelter_id: string;
@@ -64,6 +72,7 @@ export default function ShelterManagementPage() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [showMap, setShowMap] = useState(false);
 
   const [selected, setSelected] = useState<Shelter | null>(null);
   const [deleting, setDeleting] = useState<Shelter | null>(null);
@@ -154,6 +163,7 @@ export default function ShelterManagementPage() {
 
   function openEditor(shelter: Shelter | null) {
     setEditing(shelter);
+    setShowMap(false);
 
     setDraft(
       shelter
@@ -465,7 +475,7 @@ export default function ShelterManagementPage() {
       {/* เพิ่ม / แก้ไขศูนย์พักพิง */}
       <dialog
         ref={editor}
-        className="rounded-3xl p-6 sm:p-8 max-w-lg w-[92%] backdrop:bg-black/40 shadow-2xl open:animate-in open:fade-in open:zoom-in-95"
+        className={`${styles.centeredDialog} rounded-3xl p-6 sm:p-8 max-w-lg w-[92%] backdrop:bg-black/40 shadow-2xl open:animate-in open:fade-in open:zoom-in-95`}
         onCancel={(e) => {
           if (saving) e.preventDefault();
         }}
@@ -558,6 +568,26 @@ export default function ShelterManagementPage() {
                 onChange={(e) => setDraft({ ...draft, address: e.target.value })}
                 className="w-full border border-gray-200 rounded-xl p-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-y"
               />
+              <button
+                type="button"
+                aria-expanded={showMap}
+                aria-controls="shelter-address-map"
+                onClick={() => setShowMap((value) => !value)}
+                className="mt-3 rounded-xl border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-bgAccent"
+              >
+                {showMap ? "ซ่อนแผนที่" : "เลือกตำแหน่งจากแผนที่"}
+              </button>
+              <p className="mt-2 text-xs text-gray-500">เลือกจุดเพื่อเพิ่มพิกัดลงในที่อยู่ และพิมพ์ชื่อสถานที่หรือรายละเอียดที่อยู่เพิ่มเติมได้</p>
+              <div id="shelter-address-map" className="mt-3" hidden={!showMap}>
+                {showMap && <MapPicker
+                  initialLat={addressCoordinates(draft.address)?.lat}
+                  initialLng={addressCoordinates(draft.address)?.lng}
+                  instruction="คลิกบนแผนที่หรือลากหมุดเพื่อเลือกตำแหน่งศูนย์พักพิง"
+                  onLocationSelect={(lat, lng) => {
+                    if (!saving) setDraft((current) => ({ ...current, address: addressWithCoordinates(current.address, lat, lng) }));
+                  }}
+                />}
+              </div>
             </div>
           </fieldset>
 
@@ -591,7 +621,7 @@ export default function ShelterManagementPage() {
       {/* รายชื่อสัตว์ในศูนย์ */}
       <dialog
         ref={animalDialog}
-        className="rounded-3xl p-6 sm:p-8 max-w-lg w-[92%] backdrop:bg-black/40 shadow-2xl open:animate-in open:fade-in open:zoom-in-95"
+        className={`${styles.centeredDialog} rounded-3xl p-6 sm:p-8 max-w-lg w-[92%] backdrop:bg-black/40 shadow-2xl open:animate-in open:fade-in open:zoom-in-95`}
       >
         <div className="flex justify-between items-center pb-3 mb-2 border-b border-gray-100">
           <h2 className="font-mali font-semibold text-lg sm:text-xl text-textMain">
