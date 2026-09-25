@@ -58,11 +58,12 @@ export default function Navbar() {
 
   const displayName = user?.name || user?.username || "ผู้ใช้งาน";
   const adoptionMenu = user?.role === "admin"
-    ? { href: "/admin/adoptions", label: "ตรวจสอบคำขอรับเลี้ยง" }
+    ? { href: "/admin/adoptions", label: "" }
     : user?.role === "user"
-      ? { href: "/adoption-requests", label: "คำขอรับเลี้ยงของฉัน" }
+      ? { href: "/adoption-requests", label: "" }
       : null;
   const avatarLetter = displayName.slice(0, 1).toUpperCase();
+
 
   return (
     <>
@@ -220,7 +221,6 @@ export default function Navbar() {
             <span>แจ้งพบเจอสัตว์</span>
           </Link>
 
-
           <Link
             href="/my-reports"
             onClick={() => setIsLeftDrawerOpen(false)}
@@ -230,6 +230,14 @@ export default function Navbar() {
             <span>ประวัติการแจ้งพบสัตว์</span>
           </Link>
 
+          <Link
+            href="/adoption-requests"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-clipboard-list text-stone-400 w-5 text-center"></i>
+            <span>คำขอรับเลี้ยงของฉัน</span>
+          </Link>
 
           <Link
             href="/about"
@@ -287,6 +295,10 @@ export default function Navbar() {
                 <span className="font-medium">ตรวจสอบการแจ้งพบสัตว์</span>
               </Link>
 
+
+
+
+
               <Link
                 href="/admin/care-monitoring"
                 onClick={() => setIsLeftDrawerOpen(false)}
@@ -298,7 +310,14 @@ export default function Navbar() {
 
 
 
-
+              <Link
+                href="/admin/adoptions"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center"></i>
+                <span className="font-medium">ตรวจสอบคำขอรับเลี้ยง</span>
+              </Link>
 
 
 
