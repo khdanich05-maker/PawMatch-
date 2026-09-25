@@ -19,23 +19,32 @@ interface MapPickerProps {
   initialLat?: number;
   initialLng?: number;
   onLocationSelect: (lat: number, lng: number) => void;
+  instruction?: string;
 }
 
 export default function MapPicker({
   initialLat = 8.6408,
   initialLng = 99.8953,
   onLocationSelect,
+  instruction = "คลิกบนแผนที่หรือลากหมุดเพื่อระบุตำแหน่งที่พบสัตว์",
 }: MapPickerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const initialPosition = useRef({ lat: initialLat, lng: initialLng });
+  const onSelectRef = useRef(onLocationSelect);
+
+  useEffect(() => {
+    onSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
     // Initialize Map only once
     if (!mapInstanceRef.current) {
-      const map = L.map(mapRef.current).setView([initialLat, initialLng], 15);
+      const { lat, lng } = initialPosition.current;
+      const map = L.map(mapRef.current).setView([lat, lng], 15);
       mapInstanceRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -44,7 +53,7 @@ export default function MapPicker({
       }).addTo(map);
 
       // Add initial marker
-      const marker = L.marker([initialLat, initialLng], {
+      const marker = L.marker([lat, lng], {
         icon: defaultIcon,
         draggable: true,
       }).addTo(map);
@@ -53,20 +62,25 @@ export default function MapPicker({
       // Handle marker drag
       marker.on("dragend", () => {
         const position = marker.getLatLng();
-        onLocationSelect(position.lat, position.lng);
+        onSelectRef.current(position.lat, position.lng);
       });
 
       // Handle map click
       map.on("click", (e: L.LeafletMouseEvent) => {
         marker.setLatLng(e.latlng);
-        onLocationSelect(e.latlng.lat, e.latlng.lng);
+        onSelectRef.current(e.latlng.lat, e.latlng.lng);
       });
     }
 
+    const resizeObserver = new ResizeObserver(() => mapInstanceRef.current?.invalidateSize());
+    resizeObserver.observe(mapRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        markerRef.current = null;
       }
     };
   }, []);
@@ -79,7 +93,7 @@ export default function MapPicker({
           if (mapInstanceRef.current && markerRef.current) {
             mapInstanceRef.current.setView([latitude, longitude], 15);
             markerRef.current.setLatLng([latitude, longitude]);
-            onLocationSelect(latitude, longitude);
+            onSelectRef.current(latitude, longitude);
           }
         },
         (err) => {
@@ -106,7 +120,7 @@ export default function MapPicker({
       </button>
       <div className="bg-bgAccent/80 px-4 py-2 text-xs text-textMain font-prompt flex items-center gap-2 border-t border-gray-200">
         <i className="fa-solid fa-circle-info text-primary"></i>
-        <span>คลิกบนแผนที่หรือลากหมุดเพื่อระบุตำแหน่งที่พบสัตว์</span>
+        <span>{instruction}</span>
       </div>
     </div>
   );
