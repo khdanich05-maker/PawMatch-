@@ -79,16 +79,19 @@ export default function CasesPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 min-h-screen">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="font-mali font-semibold text-2xl sm:text-4xl mb-1 sm:mb-2 text-textMain">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-12 min-h-screen">
+      {/* ลด mb-8 เหลือ mb-4 หรือ mb-5 */}
+      <div className="mb-4 sm:mb-6">
+        <h1 className="font-mali font-semibold text-2xl sm:text-3xl text-textMain">
           เพื่อนสี่ขาที่รอคอยบ้าน 🐾
         </h1>
-        <p className="text-gray-500 text-sm sm:text-base">ค้นหาเพื่อนซี้สี่ขาที่ตรงใจคุณจากฐานข้อมูลระบบ</p>
+        <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
+          ค้นหาเพื่อนซี้สี่ขาที่ตรงใจคุณจากฐานข้อมูลระบบ
+        </p>
       </div>
 
       {/* กล่อง Filter */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 sm:mb-10">
+      <div className="bg-white p-4 sm:px-6 sm:py-3 rounded-2xl shadow-sm border border-gray-100 mb-4 sm:mb-4">
         <div
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="flex items-center justify-between font-mali font-semibold text-primary text-base sm:text-lg cursor-pointer sm:cursor-default select-none"
@@ -105,14 +108,14 @@ export default function CasesPage() {
           </button>
         </div>
 
-        <div className={`mt-4 ${isFilterOpen ? "block" : "hidden sm:block"}`}>
+        <div className={`mt-4 sm:mt-2 ${isFilterOpen ? "block" : "hidden sm:block"}`}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div>
               <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">ประเภทสัตว์</label>
               <select
                 value={filterSpecies}
                 onChange={(e) => setFilterSpecies(e.target.value)}
-                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-sm rounded-xl p-2.5 sm:p-3 font-prompt outline-none"
+                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-xs rounded-xl p-2.5 sm:py-1.5 sm:px-2.5 font-prompt outline-none "
               >
                 <option value="all">🐾 ทั้งหมด</option>
                 <option value="สุนัข">🐶 สุนัข</option>
@@ -125,7 +128,7 @@ export default function CasesPage() {
               <select
                 value={filterGender}
                 onChange={(e) => setFilterGender(e.target.value)}
-                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-sm rounded-xl p-2.5 sm:p-3 font-prompt outline-none"
+                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-xs rounded-xl p-2.5 sm:py-1.5 sm:px-2.5 font-prompt outline-none"
               >
                 <option value="all">⚥ ทั้งหมด</option>
                 <option value="ตัวผู้">♂ ตัวผู้</option>
@@ -138,7 +141,7 @@ export default function CasesPage() {
               <select
                 value={filterAge}
                 onChange={(e) => setFilterAge(e.target.value)}
-                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-sm rounded-xl p-2.5 sm:p-3 font-prompt outline-none"
+                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-xs rounded-xl p-2.5 sm:py-1.5 sm:px-2.5 font-prompt outline-none"
               >
                 <option value="all">⏳ ทุกช่วงวัย</option>
                 <option value="เด็ก (0-1 ปี)">เด็ก (0-1 ปี)</option>
@@ -152,7 +155,7 @@ export default function CasesPage() {
               <select
                 value={filterColor}
                 onChange={(e) => setFilterColor(e.target.value)}
-                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-sm rounded-xl p-2.5 sm:p-3 font-prompt outline-none"
+                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-xs rounded-xl p-2.5 sm:py-1.5 sm:px-2.5 font-prompt outline-none"
               >
                 <option value="all">🎨 ทุกสี</option>
                 <option value="ขาว">ขาว</option>
@@ -169,7 +172,7 @@ export default function CasesPage() {
               <select
                 value={filterProvince}
                 onChange={(e) => setFilterProvince(e.target.value)}
-                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-sm rounded-xl p-2.5 sm:p-3 font-prompt outline-none focus:border-primary transition"
+                className="w-full bg-bgMain border border-gray-200 text-textMain text-xs sm:text-xs rounded-xl p-2.5 sm:py-1.5 sm:px-2.5 font-prompt outline-none focus:border-primary transition"
               >
                 <option value="all">📍 ทุกพื้นที่ (ทั่วประเทศ)</option>
                 {THAI_PROVINCES.map((prov) => (
@@ -181,13 +184,13 @@ export default function CasesPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-3 sm:pt-4">
+          <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">
             <button
               type="button"
               onClick={handleResetFilter}
-              className="font-mali font-semibold text-xs sm:text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl transition duration-200 flex items-center gap-2 cursor-pointer"
+              className="font-mali font-medium text-xs sm:text-sm text-gray-500 hover:text-textMain bg-gray-100 hover:bg-gray-200 px-4 py-1.5 rounded-xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
             >
-              <i className="fa-solid fa-rotate-left"></i> ล้างค่า
+              <i className="fa-solid fa-rotate-left text-xs"></i> ล้างค่า
             </button>
           </div>
         </div>
@@ -227,9 +230,8 @@ export default function CasesPage() {
 
                 <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-white/90 backdrop-blur-xs text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-semibold shadow-xs flex items-center gap-1">
                   <span
-                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
-                      animal.status === "รอคนดูแล" ? "bg-green-500 animate-pulse" : "bg-orange-400"
-                    }`}
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${animal.status === "รอคนดูแล" ? "bg-green-500 animate-pulse" : "bg-orange-400"
+                      }`}
                   ></span>
                   <span className={animal.status === "รอคนดูแล" ? "text-green-600" : "text-orange-500"}>
                     {animal.status}
@@ -244,9 +246,8 @@ export default function CasesPage() {
                       {animal.name || "ไม่ระบุชื่อ"}
                     </h3>
                     <span
-                      className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center text-xs ${
-                        animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
-                      }`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center text-xs ${animal.gender === "ตัวเมีย" ? "bg-pink-50 text-pink-500" : "bg-blue-50 text-blue-500"
+                        }`}
                     >
                       <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
                     </span>

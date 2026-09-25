@@ -163,8 +163,9 @@ export default function AnimalDetailModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col lg:flex-row relative shadow-2xl">
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4">
+        {/* 🌟 1. อนุญาตให้จอมือถือเลื่อนทั้งกล่องด้วย overflow-y-auto ส่วนจอคอมคงเดิมด้วย lg:overflow-hidden */}
+        <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative shadow-2xl">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 bg-white/80 backdrop-blur text-gray-500 hover:text-primary hover:bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm z-20 transition cursor-pointer"
@@ -172,9 +173,9 @@ export default function AnimalDetailModal({
             <i className="fa-solid fa-xmark text-xl"></i>
           </button>
 
-          {/* ฝั่งซ้าย: รูปภาพและแกลเลอรี */}
-          <div className="lg:w-1/2 bg-gray-50/50 p-6 flex flex-col justify-start gap-4 border-b lg:border-b-0 lg:border-r border-gray-100">
-            <div className="relative w-full flex-1 min-h-[320px] max-h-[440px] bg-gray-100 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center group">
+          {/* 🌟 2. ฝั่งซ้าย (รูปภาพ) ใส่ shrink-0 เพื่อไม่ให้รูปโดนบีบเวลายืด-หด */}
+          <div className="w-full lg:w-1/2 bg-gray-50/50 p-4 sm:p-6 flex flex-col justify-start gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 shrink-0">
+            <div className="relative w-full aspect-[4/3] sm:min-h-[320px] max-h-[400px] bg-gray-100 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center group">
               <img
                 src={images[currentImageIndex] || images[0]}
                 alt={selectedAnimal.name}
@@ -214,11 +215,10 @@ export default function AnimalDetailModal({
                     key={idx}
                     type="button"
                     onClick={() => setCurrentImageIndex(idx)}
-                    className={`h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer ${
-                      currentImageIndex === idx
+                    className={`h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer ${currentImageIndex === idx
                         ? "border-primary scale-95 shadow-sm"
                         : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
+                      }`}
                   >
                     <img src={imgUrl} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
                   </button>
@@ -227,18 +227,17 @@ export default function AnimalDetailModal({
             )}
           </div>
 
-          {/* ฝั่งขวา: รายละเอียดสัตว์ */}
-          <div className="lg:w-1/2 p-8 lg:p-10 flex flex-col overflow-y-auto border-l border-gray-100">
+          {/* 🌟 3. ฝั่งขวา (ข้อความ) ตั้งค่าให้มือถือเลื่อนยาวต่อเนื่อง overflow-y-visible ส่วนคอมเลื่อนแยกฝั่ง lg:overflow-y-auto */}
+          <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col overflow-y-visible lg:overflow-y-auto flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold">
                 สถานะ: {selectedAnimal.status}
               </span>
               <span
-                className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                  selectedAnimal.health_status === "ปกติ"
+                className={`text-xs px-3 py-1 rounded-full font-semibold ${selectedAnimal.health_status === "ปกติ"
                     ? "bg-emerald-100 text-emerald-700"
                     : "bg-orange-100 text-orange-700"
-                }`}
+                  }`}
               >
                 สุขภาพ: {selectedAnimal.health_status}
               </span>
@@ -248,12 +247,11 @@ export default function AnimalDetailModal({
               </span>
             </div>
 
-            <h2 className="font-itim text-5xl text-textMain mb-4 flex items-center gap-4">
+            <h2 className="font-itim text-4xl sm:text-5xl text-textMain mb-4 flex items-center gap-4">
               {selectedAnimal.name}
               <i
-                className={`fa-solid ${
-                  selectedAnimal.gender === "ตัวเมีย" ? "fa-venus text-pink-400" : "fa-mars text-blue-400"
-                } text-3xl`}
+                className={`fa-solid ${selectedAnimal.gender === "ตัวเมีย" ? "fa-venus text-pink-400" : "fa-mars text-blue-400"
+                  } text-3xl`}
               ></i>
             </h2>
 

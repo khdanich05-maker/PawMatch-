@@ -26,7 +26,7 @@ export default function AnimalPreviewModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col lg:flex-row relative shadow-2xl">
+      <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative shadow-2xl">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 bg-white/80 backdrop-blur text-gray-500 hover:text-primary hover:bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm z-20 transition"
@@ -35,7 +35,7 @@ export default function AnimalPreviewModal({
         </button>
 
         {/* แกลเลอรีรูปภาพ */}
-        <div className="lg:w-1/2 bg-gray-50/50 p-6 flex flex-col justify-start gap-4 border-b lg:border-b-0 lg:border-r border-gray-100">
+        <div className="w-full lg:w-1/2 bg-gray-50/50 p-4 sm:p-6 flex flex-col justify-start gap-4 border-b lg:border-b-0 lg:border-r border-gray-100 shrink-0">
           <div className="relative w-full flex-1 min-h-[300px] max-h-[420px] bg-gray-100 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center group">
             <img
               src={images[currentImageIndex] || images[0]}
@@ -75,9 +75,8 @@ export default function AnimalPreviewModal({
                   key={idx}
                   type="button"
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`h-16 rounded-xl overflow-hidden border-2 ${
-                    currentImageIndex === idx ? "border-primary" : "border-transparent opacity-60"
-                  }`}
+                  className={`h-16 rounded-xl overflow-hidden border-2 ${currentImageIndex === idx ? "border-primary" : "border-transparent opacity-60"
+                    }`}
                 >
                   <img src={url} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
                 </button>
@@ -87,7 +86,7 @@ export default function AnimalPreviewModal({
         </div>
 
         {/* รายละเอียด */}
-        <div className="lg:w-1/2 p-6 sm:p-8 flex flex-col overflow-y-auto">
+        <div className="w-full lg:w-1/2 p-5 sm:p-6 lg:p-8 flex flex-col overflow-y-visible lg:overflow-y-auto flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-semibold">
               {viewingAnimal.status}
