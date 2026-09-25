@@ -35,10 +35,10 @@ export default function CareTrackingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-bgMain pb-16 font-prompt">
+    <main className="min-h-screen bg-bgMain pb-32 sm:pb-16 font-prompt">
       {/* Toast Alert แจ้งเตือน */}
       {toast.show && (
-        <div className="fixed top-6 right-6 z-50 animate-bounce-once">
+        <div className="fixed top-4 sm:top-6 left-4 right-4 sm:left-auto sm:right-6 z-50 animate-bounce-once">
           <div
             className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-medium border ${
               toast.type === "success"
@@ -82,7 +82,7 @@ export default function CareTrackingPage() {
       </div>
 
       {/* Header หัวข้อหน้า */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 text-center">
         <h1 className="text-2xl sm:text-4xl font-bold font-mali text-stone-800 mb-2 sm:mb-3">
           อัปเดตสถานะการเลี้ยง 🐾
         </h1>
@@ -121,23 +121,25 @@ export default function CareTrackingPage() {
             </Link>
           </div>
         ) : (
-          /* Layout 2 คอลัมน์ ตาม Mockup */
+          /* Layout 2 คอลัมน์ Responsive */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-            {/* คอลัมน์ซ้าย: ข้อมูลสัตว์ + ประวัติการอัปเดต */}
+            {/* คอลัมน์ซ้าย: ข้อมูลสัตว์ + ประวัติการอัปเดต (บน Desktop) */}
             <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
               <PetAdoptedCard
                 selectedMatch={selectedMatch}
                 adoptedPets={adoptedPets}
                 onSelectMatch={setSelectedMatch}
               />
-              <CareHistoryList
-                careLogs={careLogs}
-                loading={logsLoading}
-              />
+              <div className="hidden lg:block">
+                <CareHistoryList
+                  careLogs={careLogs}
+                  loading={logsLoading}
+                />
+              </div>
             </div>
 
-            {/* คอลัมน์ขวา: ฟอร์มเพิ่มบันทึกใหม่ */}
-            <div className="lg:col-span-7 xl:col-span-8">
+            {/* คอลัมน์ขวา: ฟอร์มเพิ่มบันทึกใหม่ + ประวัติการอัปเดต (บน Mobile) */}
+            <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
               <CareLogForm
                 formData={formData}
                 setFormData={setFormData}
@@ -146,6 +148,12 @@ export default function CareTrackingPage() {
                 submitting={submitting}
                 disabled={!selectedMatch}
               />
+              <div className="block lg:hidden">
+                <CareHistoryList
+                  careLogs={careLogs}
+                  loading={logsLoading}
+                />
+              </div>
             </div>
           </div>
         )}
