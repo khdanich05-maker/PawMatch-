@@ -4,6 +4,7 @@
 import React, { useRef } from "react";
 import { CareLogFormData } from "@/types/careLog";
 import { formatThaiDateBE, getThaiYear } from "@/lib/dateHelper";
+import ThaiDatePicker from "./ThaiDatePicker";
 
 interface Props {
   formData: CareLogFormData;
@@ -90,20 +91,18 @@ export default function CareLogForm({
                 </span>
               )}
             </div>
-            <div className="relative">
-              <input
-                type="date"
-                value={formData.log_date}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, log_date: e.target.value }))
-                }
-                disabled={disabled || submitting}
-                className="w-full min-h-[48px] h-12 text-sm sm:text-base px-3.5 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:border-[#E29578] focus:bg-white shadow-2xs transition cursor-pointer"
-                required
-              />
-            </div>
+            
+            <ThaiDatePicker
+              value={formData.log_date}
+              onChange={(newDate) =>
+                setFormData((prev) => ({ ...prev, log_date: newDate }))
+              }
+              disabled={disabled || submitting}
+              required
+            />
+
             {formData.log_date && (
-              <p className="mt-1 text-[11px] sm:text-xs text-stone-400 flex items-center gap-1.5 pl-1">
+              <p className="mt-1.5 text-[11px] sm:text-xs text-stone-400 flex items-center gap-1.5 pl-1">
                 <i className="fa-regular fa-calendar-check text-[#E29578]"></i>
                 <span>วันที่เลือก: {formatThaiDateBE(formData.log_date)}</span>
               </p>
