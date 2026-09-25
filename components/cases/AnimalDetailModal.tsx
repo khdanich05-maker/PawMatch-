@@ -80,6 +80,21 @@ export default function AnimalDetailModal({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+  const getHealthBadgeStyle = (health?: string) => {
+    switch (health) {
+      case "ปกติ":
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "ป่วย":
+        return "bg-amber-100 text-amber-700 border-amber-200"; // เหลืองส้ม
+      case "บาดเจ็บ":
+        return "bg-rose-100 text-rose-700 border-rose-200";     // แดง
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+
+
   // 🛡️ ตรวจสอบว่ากรอกข้อมูลส่วนตัวและความพร้อมในตาราง users ครบหรือยัง
   const handlePreAdoptCheck = async () => {
     const currentUserId = currentUser?.id || currentUser?.user_id || currentUser?.userId;
@@ -216,8 +231,8 @@ export default function AnimalDetailModal({
                     type="button"
                     onClick={() => setCurrentImageIndex(idx)}
                     className={`h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer ${currentImageIndex === idx
-                        ? "border-primary scale-95 shadow-sm"
-                        : "border-transparent opacity-60 hover:opacity-100"
+                      ? "border-primary scale-95 shadow-sm"
+                      : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                   >
                     <img src={imgUrl} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
@@ -234,12 +249,11 @@ export default function AnimalDetailModal({
                 สถานะ: {selectedAnimal.status}
               </span>
               <span
-                className={`text-xs px-3 py-1 rounded-full font-semibold ${selectedAnimal.health_status === "ปกติ"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-orange-100 text-orange-700"
-                  }`}
+                className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${getHealthBadgeStyle(
+                  selectedAnimal.health_status
+                )}`}
               >
-                สุขภาพ: {selectedAnimal.health_status}
+                สุขภาพ: {selectedAnimal.health_status || "ปกติ"}
               </span>
               <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1">
                 <i className="fa-regular fa-clock text-amber-600"></i> รอคอยบ้านมาแล้ว{" "}

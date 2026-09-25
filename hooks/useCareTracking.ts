@@ -90,8 +90,9 @@ export function useCareTracking() {
           )
         `)
         .eq("user_id", userId)
-        .in("match_status", ["กำลังดูแล", "สิ้นสุดการดูแล"])
-        .order("start_date", { ascending: false });
+        .in("match_status", ["กำลังดูแล", "สิ้นสุดการดูแล"])// จากเดิม: .in("match_status", ["กำลังดูแล", "สิ้นสุดการดูแล"])
+        .eq("match_status", "อนุมัติ").order
+        ("start_date", { ascending: false });
 
       if (error) {
         console.error("Error fetching adopted pets:", error.message || error);

@@ -52,16 +52,16 @@ export default function HeroSection() {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/quiz"
+              href="/report"
               className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-7 py-3.5 rounded-2xl transition duration-300 shadow-lg text-center flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
             >
-              <i className="fa-solid fa-wand-magic-sparkles"></i> ทำแบบประเมินจับคู่ใจ
+              <i className="fa-solid fa-wand-magic-sparkles"></i> แจ้งพบสัตว์จรจัด
             </Link>
             <Link
               href="/cases"
               className="font-mali font-semibold bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/40 px-7 py-3.5 rounded-2xl transition duration-300 text-center flex items-center justify-center gap-2"
             >
-              ดูเคสสัตว์ที่รอคอยบ้าน <i className="fa-solid fa-arrow-right text-xs"></i>
+              ตามหาสัตว์เลี้ยง <i className="fa-solid fa-arrow-right text-xs"></i>
             </Link>
           </div>
 
