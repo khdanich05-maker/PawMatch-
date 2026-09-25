@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatThaiDateBE } from "@/lib/dateHelper";
 
 export default function AdminCareMonitoringPage() {
   const router = useRouter();
@@ -55,7 +56,8 @@ export default function AdminCareMonitoringPage() {
             animal_id,
             match_status,
             start_date,
-            users (username, phone, email),
+            end_date,
+            users:users!matches_user_id_fkey (user_id, full_name, phone),
             animals (animal_id, name, species, image_url, status)
           )
         `)
@@ -180,7 +182,7 @@ export default function AdminCareMonitoringPage() {
                       น้อง {pet?.name || "ไม่มีชื่อ"} ({pet?.species || "สัตว์"})
                     </h3>
                     <p className="text-[11px] text-stone-400 truncate">
-                      ผู้รับเลี้ยง: {adopter?.username || "-"} {adopter?.phone ? `(${adopter.phone})` : ""}
+                      ผู้รับเลี้ยง: {adopter?.full_name || adopter?.username || "-"} {adopter?.phone ? `(${adopter.phone})` : ""}
                     </p>
                   </div>
                 </div>
@@ -191,11 +193,7 @@ export default function AdminCareMonitoringPage() {
                     {log.activity_type}
                   </span>
                   <span className="text-[11px] text-stone-400">
-                    {new Date(log.log_date).toLocaleDateString("th-TH", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {formatThaiDateBE(log.log_date)}
                   </span>
                 </div>
 
