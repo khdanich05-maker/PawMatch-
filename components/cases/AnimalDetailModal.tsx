@@ -341,6 +341,15 @@ export default function AnimalDetailModal({
                   <i className="fa-solid fa-heart"></i> ยื่นคำขอรับเลี้ยงน้อง 🐾
                 </button>
               )}
+              {currentUser?.role === "user" && !isCheckingRequest && !isCheckingProfile && !hasUserRequested && (
+                <Link
+                  href={`/adoption-requests/new/${selectedAnimal.animal_id}`}
+                  onClick={onClose}
+                  className="mt-3 w-full font-mali font-semibold border border-[#C07055] text-[#C07055] hover:bg-[#FDF0EB] py-3 rounded-xl flex justify-center items-center gap-2 transition duration-200 text-center"
+                >
+                  กรอกแบบฟอร์มขอรับเลี้ยง
+                </Link>
+              )}
             </div>
           </div>
         </div>
