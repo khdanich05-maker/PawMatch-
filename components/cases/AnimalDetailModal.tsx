@@ -54,7 +54,7 @@ export default function AnimalDetailModal({
           const isSelfRequested = data.some(
             (m: any) =>
               m.user_id === currentUserId &&
-              ["รออนุมัติ", "กำลังดูแล"].includes(m.match_status)
+              ["รออนุมัติ", "กำลังดูแล", "อนุมัติ"].includes(m.match_status)
           );
           setHasUserRequested(isSelfRequested);
         } else {

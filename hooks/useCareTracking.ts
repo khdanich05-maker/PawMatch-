@@ -90,7 +90,7 @@ export function useCareTracking() {
           )
         `)
         .eq("user_id", userId)
-        .in("match_status", ["กำลังดูแล", "สิ้นสุดการดูแล"])
+        .eq("match_status", "อนุมัติ")
         .order("start_date", { ascending: false });
 
       if (error) {
@@ -103,6 +103,7 @@ export function useCareTracking() {
           .filter((item: any) => item.animal !== null)
           .map((item: any) => ({
             ...item,
+            match_status: item.end_date ? "สิ้นสุดการดูแล" : "กำลังดูแล",
             animal: Array.isArray(item.animal) ? item.animal[0] : item.animal,
           })) as AdoptedPetMatch[];
 

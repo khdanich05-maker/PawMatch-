@@ -84,11 +84,10 @@ export default function AdminCareMonitoringPage() {
 
     setUpdatingMatchId(matchId);
     try {
-      // 1. อัปเดตสถานะในตาราง matches เป็น 'ได้บ้านแล้ว' หรือสิ้นสุดการดูแล
+      // 1. อัปเดต end_date ในตาราง matches เพื่อปิดเคสการดูแล
       const { error: matchError } = await supabase
         .from("matches")
         .update({
-          match_status: "สิ้นสุดการดูแล",
           end_date: new Date().toISOString(),
         })
         .eq("match_id", matchId);
@@ -163,8 +162,8 @@ export default function AdminCareMonitoringPage() {
           {careLogs.map((log) => {
             const pet = log.matches?.animals;
             const adopter = log.matches?.users;
-            const matchStatus = log.matches?.match_status;
-            const isClosed = matchStatus === "ได้บ้านแล้ว";
+            const isClosed = Boolean(log.matches?.end_date);
+            const matchStatus = isClosed ? "สิ้นสุดการดูแล" : "กำลังดูแล";
 
             return (
               <div
