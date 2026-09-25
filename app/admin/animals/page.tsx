@@ -92,24 +92,24 @@ export default function AdminAnimalsPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-2 pb-12 min-h-screen">    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center -mt-1 sm:-mt-2 mb-4 gap-3">  <div>
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="font-mali font-semibold text-2xl sm:text-4xl text-textMain">
-            จัดการทะเบียนสัตว์จรจัด 🐾
-          </h1>
-          <span className="bg-gray-800 text-white text-xs px-3 py-1 rounded-full font-prompt font-semibold">
-            Admin Mode
-          </span>
-        </div>
-        <p className="text-gray-500 text-sm">ระบบจัดการฐานข้อมูลสัตว์จรจัด (เพิ่ม / แก้ไข / ลบ ข้อมูลสัตว์)</p>
+      <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-nowrap">
+        <h1 className="font-mali font-semibold text-lg sm:text-4xl text-textMain whitespace-nowrap">
+          จัดการทะเบียนสัตว์จรจัด 🐾
+        </h1>
+        <span className="bg-gray-800 text-white text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full font-prompt font-semibold shrink-0">
+          Admin Mode
+        </span>
       </div>
+      <p className="text-gray-500 text-sm">ระบบจัดการฐานข้อมูลสัตว์จรจัด (เพิ่ม / แก้ไข / ลบ ข้อมูลสัตว์)</p>
+    </div>
 
-        <button
-          onClick={handleOpenCreateModal}
-          className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-2xl transition duration-300 shadow-md flex items-center gap-2"
-        >
-          <i className="fa-solid fa-circle-plus text-lg"></i> เพิ่มข้อมูลสัตว์ใหม่
-        </button>
-      </div>
+      <button
+        onClick={handleOpenCreateModal}
+        className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-6 py-3 rounded-2xl transition duration-300 shadow-md flex items-center gap-2"
+      >
+        <i className="fa-solid fa-circle-plus text-lg"></i> เพิ่มข้อมูลสัตว์ใหม่
+      </button>
+    </div>
 
       {/* กล่องตัวกรอง (ส่ง Props ตัวกรองศูนย์พักพิงเพิ่ม) */}
       <AnimalFilterBar
