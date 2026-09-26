@@ -95,6 +95,48 @@ export default function AnimalDetailModal({
 
 
 
+  // // 🛡️ ตรวจสอบว่ากรอกข้อมูลส่วนตัวและความพร้อมในตาราง users ครบหรือยัง
+  // const handlePreAdoptCheck = async () => {
+  //   const currentUserId = currentUser?.id || currentUser?.user_id || currentUser?.userId;
+  //   if (!currentUserId) {
+  //     router.push("/login");
+  //     return;
+  //   }
+
+  //   setIsCheckingProfile(true);
+  //   try {
+  //     const { data: profile, error } = await supabase
+  //       .from("users")
+  //       .select("phone, accommodation_type, address, province, full_name")
+  //       .eq("user_id", currentUserId)
+  //       .maybeSingle();
+
+  //     if (error) throw error;
+
+  //     // เงื่อนไข: ต้องมีเบอร์โทร, ประเภทที่พัก และที่อยู่/ชื่อ
+  //     const isProfileComplete = Boolean(
+  //       profile?.phone?.trim() &&
+  //       profile?.accommodation_type?.trim() &&
+  //       (profile?.address?.trim() || profile?.province?.trim() || profile?.full_name?.trim())
+  //     );
+
+
+  //     // กรอกข้อมูล
+  //     // ถ้ายังไม่ครบ ให้แจ้งเตือนและพาไปหน้ากรอกข้อมูลโปรไฟล์ทันที
+  //     if (!isProfileComplete) {
+  //       //alert("กรุณากรอกข้อมูลส่วนตัวและความพร้อมในการเลี้ยงสัตว์ให้ครบถ้วนก่อนยื่นคำขอรับเลี้ยง");
+  //       router.push(`/adoption-requests/new/${selectedAnimal.animal_id}`);
+  //       return;
+  //     }
+
+  //     // ถ้ากรอกข้อมูลครบแล้ว ให้เปิด Popup ยืนยันตามระบบเดิม
+  //     setIsConfirmOpen(true);
+  //   } catch (err: any) {
+  //     alert("เกิดข้อผิดพลาดในการตรวจสอบโปรไฟล์: " + (err.message || err));
+  //   } finally {
+  //     setIsCheckingProfile(false);
+  //   }
+  // };
   // 🛡️ ตรวจสอบว่ากรอกข้อมูลส่วนตัวและความพร้อมในตาราง users ครบหรือยัง
   const handlePreAdoptCheck = async () => {
     const currentUserId = currentUser?.id || currentUser?.user_id || currentUser?.userId;
@@ -125,7 +167,7 @@ export default function AnimalDetailModal({
       // ถ้ายังไม่ครบ ให้แจ้งเตือนและพาไปหน้ากรอกข้อมูลโปรไฟล์ทันที
       if (!isProfileComplete) {
         //alert("กรุณากรอกข้อมูลส่วนตัวและความพร้อมในการเลี้ยงสัตว์ให้ครบถ้วนก่อนยื่นคำขอรับเลี้ยง");
-        router.push("/user/edit");
+        router.push(`/adoption-requests/new/${selectedAnimal.animal_id}`);
         return;
       }
 
@@ -137,6 +179,8 @@ export default function AnimalDetailModal({
       setIsCheckingProfile(false);
     }
   };
+
+
 
   // ดำเนินการยื่นคำขอรับเลี้ยงหลังกดยืนยันใน Popup
   const handleExecuteAdopt = async () => {
@@ -355,7 +399,7 @@ export default function AnimalDetailModal({
                   <i className="fa-solid fa-heart"></i> ยื่นคำขอรับเลี้ยงน้อง 🐾
                 </button>
               )}
-              {currentUser?.role === "user" && !isCheckingRequest && !isCheckingProfile && !hasUserRequested && (
+              {/* {currentUser?.role === "user" && !isCheckingRequest && !isCheckingProfile && !hasUserRequested && (
                 <Link
                   href={`/adoption-requests/new/${selectedAnimal.animal_id}`}
                   onClick={onClose}
@@ -363,7 +407,7 @@ export default function AnimalDetailModal({
                 >
                   กรอกแบบฟอร์มขอรับเลี้ยง
                 </Link>
-              )}
+              )} */}
             </div>
           </div>
         </div>
