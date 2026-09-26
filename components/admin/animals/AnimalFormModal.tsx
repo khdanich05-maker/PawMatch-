@@ -155,7 +155,7 @@ export default function AnimalFormModal({
                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm outline-none focus:border-primary"
               >
                 <option value="รอคนดูแล">รอคนดูแล</option>
-                <option value="รอการอนุมัติ">รอการอนุมัติ</option>
+                {/* <option value="รอการอนุมัติ">รอการอนุมัติ</option> */}
                 <option value="ได้บ้านแล้ว">ได้บ้านแล้ว</option>
               </select>
             </div>
