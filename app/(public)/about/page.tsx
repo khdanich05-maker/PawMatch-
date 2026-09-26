@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const TEAM_MEMBERS = [
   {
-    name: "เดนิส",
+    name: "เดนิช",
     role: "Feature 1 · Auth & User Profile",
     desc: "ระบบล็อกอิน สมัครสมาชิก และจัดการโปรไฟล์ผู้ใช้",
     icon: "fa-solid fa-user-shield",
