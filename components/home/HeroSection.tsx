@@ -28,7 +28,7 @@ export default function HeroSection() {
             key={index}
             src={imgUrl}
             alt={`GoHome Hero Background ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover object-right md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            className={`absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
               }`}
           />
         ))}
