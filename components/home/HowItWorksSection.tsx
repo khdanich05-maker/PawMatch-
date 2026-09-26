@@ -16,7 +16,7 @@ export default function HowItWorksSection() {
             </div>
             <h4 className="font-mali font-semibold text-lg mb-2">1. แจ้งพบสัตว์จร</h4>
             <p className="text-xs text-gray-500 max-w-[210px] leading-relaxed">
-              พลเมืองดีปักหมุดพิกัดและถ่ายรูปสัตว์จรจัดที่ต้องการความช่วยเหลือโดยไม่ต้องล็อกอิน
+              พลเมืองดีปักหมุดพิกัดและถ่ายรูปสัตว์จรจัดที่ต้องการความช่วยเหลือ
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export default function HowItWorksSection() {
             </div>
             <h4 className="font-mali font-semibold text-lg mb-2">3. ทำแบบประเมินจับคู่ใจ</h4>
             <p className="text-xs text-gray-500 max-w-[210px] leading-relaxed">
-              ผู้รับเลี้ยงทำแบบประเมิน Matching Quiz เพื่อหาน้องสัตว์ที่ตรงกับสภาพแวดล้อมและนิสัย
+              ผู้รับเลี้ยงทำแบบประเมิน Matching เพื่อหาน้องสัตว์ที่ตรงกับสภาพแวดล้อมและนิสัย
             </p>
           </div>
 

@@ -77,7 +77,7 @@ export default function Navbar() {
         {/* เมนูกลาง (ตัดคำว่าจัดการข้อมูลสัตว์ Admin ออกตามที่แจ้ง) */}
         <div className="hidden md:flex gap-8 items-center text-[15px] font-prompt text-stone-600">
           <Link href="/" className="hover:text-[#C07055] transition duration-200">หน้าหลัก</Link>
-          <Link href="/cases" className="hover:text-[#C07055] transition duration-200">เคสที่ต้องการความช่วยเหลือ</Link>
+          <Link href="/cases" className="hover:text-[#C07055] transition duration-200">ขอรับเลี้ยง</Link>
           <Link href="/report" className="hover:text-[#C07055] transition duration-200">แจ้งพบเจอสัตว์</Link>
           <Link href="/about" className="hover:text-[#C07055] transition duration-200">เกี่ยวกับเรา</Link>
         </div>
@@ -195,7 +195,7 @@ export default function Navbar() {
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
             <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
-            <span className="font-medium">เคสที่ต้องการความช่วยเหลือ</span>
+            <span className="font-medium">ขอรับเลี้ยง</span>
           </Link>
 
           <Link
