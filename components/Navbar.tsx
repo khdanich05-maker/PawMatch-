@@ -194,7 +194,7 @@ export default function Navbar() {
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
-            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+            <i className="fa-solid fa-hand-holding-heart text-stone-400 w-5 text-center"></i>
             <span className="font-medium">ขอรับเลี้ยง</span>
           </Link>
 
@@ -262,7 +262,7 @@ export default function Navbar() {
                 className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-[#FDF0EB] text-[#C07055] font-semibold hover:bg-[#fae2d9] transition"
               >
                 <i className="fa-solid fa-shield-cat w-5 text-center text-[#C07055]"></i>
-                <span>จัดการข้อมูลสัตว์ (Admin)</span>
+                <span>จัดการข้อมูลสัตว์</span>
               </Link>
 
               <Link
