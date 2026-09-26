@@ -344,7 +344,7 @@ export default function AnimalDetailModal({
                   disabled
                   className="w-full font-mali font-semibold bg-amber-50 text-amber-700 border border-amber-200 py-3 rounded-xl cursor-not-allowed flex justify-center items-center gap-2"
                 >
-                  <i className="fa-solid fa-clock"></i> คุณได้ยื่นคำขอรับเลี้ยงน้องตัวนี้แล้ว (รอการอนุมัติ)
+                  <i className="fa-solid fa-clock"></i> คำขอรับเลี้ยงกำลังรอการอนุมัติ
                 </button>
               ) : (
                 <button

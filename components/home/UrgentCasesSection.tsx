@@ -103,7 +103,7 @@ export default function UrgentCasesSection() {
                         }`}
                         title={animal.gender || "ไม่ระบุเพศ"}
                       >
-                        <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus" : "fa-mars"}`}></i>
+                        <i className={`fa-solid ${animal.gender === "ตัวเมีย" ? "fa-venus text"  : "fa-mars"}`}></i>
                       </span>
                     </div>
 
