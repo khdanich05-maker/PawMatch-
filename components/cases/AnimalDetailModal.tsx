@@ -138,46 +138,16 @@ export default function AnimalDetailModal({
   //   }
   // };
   // 🛡️ ตรวจสอบว่ากรอกข้อมูลส่วนตัวและความพร้อมในตาราง users ครบหรือยัง
-  const handlePreAdoptCheck = async () => {
+  // นำทางไปหน้ากรอกฟอร์มขอรับเลี้ยงทันทีสำหรับทุก Role
+  const handlePreAdoptCheck = () => {
     const currentUserId = currentUser?.id || currentUser?.user_id || currentUser?.userId;
     if (!currentUserId) {
       router.push("/login");
       return;
     }
 
-    setIsCheckingProfile(true);
-    try {
-      const { data: profile, error } = await supabase
-        .from("users")
-        .select("phone, accommodation_type, address, province, full_name")
-        .eq("user_id", currentUserId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      // เงื่อนไข: ต้องมีเบอร์โทร, ประเภทที่พัก และที่อยู่/ชื่อ
-      const isProfileComplete = Boolean(
-        profile?.phone?.trim() &&
-        profile?.accommodation_type?.trim() &&
-        (profile?.address?.trim() || profile?.province?.trim() || profile?.full_name?.trim())
-      );
-
-
-      // กรอกข้อมูล
-      // ถ้ายังไม่ครบ ให้แจ้งเตือนและพาไปหน้ากรอกข้อมูลโปรไฟล์ทันที
-      if (!isProfileComplete) {
-        //alert("กรุณากรอกข้อมูลส่วนตัวและความพร้อมในการเลี้ยงสัตว์ให้ครบถ้วนก่อนยื่นคำขอรับเลี้ยง");
-        router.push(`/adoption-requests/new/${selectedAnimal.animal_id}`);
-        return;
-      }
-
-      // ถ้ากรอกข้อมูลครบแล้ว ให้เปิด Popup ยืนยันตามระบบเดิม
-      setIsConfirmOpen(true);
-    } catch (err: any) {
-      alert("เกิดข้อผิดพลาดในการตรวจสอบโปรไฟล์: " + (err.message || err));
-    } finally {
-      setIsCheckingProfile(false);
-    }
+    onClose();
+    router.push(`/adoption-requests/new/${selectedAnimal.animal_id}`);
   };
 
 
@@ -391,6 +361,13 @@ export default function AnimalDetailModal({
                   <i className="fa-solid fa-clock"></i> คำขอรับเลี้ยงกำลังรอการอนุมัติ
                 </button>
               ) : (
+                // <button
+                //   type="button"
+                //   onClick={handlePreAdoptCheck}
+                //   className="w-full font-mali font-semibold bg-[#C07055] hover:bg-[#A85D45] text-white py-3 rounded-xl shadow-md flex justify-center items-center gap-2 transition duration-200 cursor-pointer"
+                // >
+                //   <i className="fa-solid fa-heart"></i> ยื่นคำขอรับเลี้ยงน้อง 🐾
+                // </button>
                 <button
                   type="button"
                   onClick={handlePreAdoptCheck}
@@ -398,6 +375,7 @@ export default function AnimalDetailModal({
                 >
                   <i className="fa-solid fa-heart"></i> ยื่นคำขอรับเลี้ยงน้อง 🐾
                 </button>
+
               )}
               {/* {currentUser?.role === "user" && !isCheckingRequest && !isCheckingProfile && !hasUserRequested && (
                 <Link
@@ -414,7 +392,7 @@ export default function AnimalDetailModal({
       </div>
 
       {/* กล่อง Pop-up ยืนยันสไตล์โมเดิร์นสีส้มพีช */}
-      {isConfirmOpen && (
+      {/* {isConfirmOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl border border-gray-100">
             <div className="px-6 py-4 flex items-center gap-3 text-white bg-[#E29578]">
@@ -462,7 +440,7 @@ export default function AnimalDetailModal({
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 }
