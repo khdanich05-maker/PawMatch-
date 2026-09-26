@@ -1,0 +1,17 @@
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.detailsDialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: calc(100% - 2rem);
+  max-width: 42rem;
+  max-height: 85dvh;
+  overflow-y: auto;
+}

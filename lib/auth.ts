@@ -60,7 +60,7 @@ export async function requireAuth(allowedRoles?: UserRole[]): Promise<AuthUser> 
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    redirect("/dashboard");
+    redirect("/");
   }
 
   return user;

@@ -41,8 +41,7 @@ export default function AnimalFilterBar({
   onResetFilter,
 }: Props) {
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 sm:mb-10">
-      {/* ส่วนหัวตัวกรอง */}
+    <div className="bg-white px-4 pt-3 pb-2 sm:px-6 sm:pt-3 sm:pb-3 rounded-2xl shadow-sm border border-gray-100 mb-4 sm:mb-5">      {/* ส่วนหัวตัวกรอง */}
       <div
         onClick={() => setIsFilterOpen(!isFilterOpen)}
         className="flex items-center justify-between font-mali font-semibold text-primary text-base sm:text-lg cursor-pointer sm:cursor-default select-none"
@@ -61,7 +60,7 @@ export default function AnimalFilterBar({
 
       {/* บล็อกตัวกรอง */}
       <div className={`mt-4 ${isFilterOpen ? "block" : "hidden sm:block"}`}>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-1.5 sm:mb-2">
           {/* 1. สปีชีส์ */}
           <div>
             <label className="block text-[11px] sm:text-xs text-gray-500 mb-1 pl-1">ประเภทสัตว์</label>
@@ -160,13 +159,13 @@ export default function AnimalFilterBar({
 
         {/* ปุ่มล้างค่า */}
         {onResetFilter && (
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-3 sm:pt-4">
+          <div className="flex justify-end border-t border-gray-100 pt-1 mt-1">
             <button
               type="button"
               onClick={onResetFilter}
-              className="font-mali font-semibold text-xs sm:text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl transition duration-200 flex items-center gap-2 cursor-pointer"
+              className="font-mali font-medium text-xs sm:text-sm text-gray-500 hover:text-textMain bg-gray-100 hover:bg-gray-200 px-4 py-1.5 rounded-xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
             >
-              <i className="fa-solid fa-rotate-left"></i> ล้างค่า
+              <i className="fa-solid fa-rotate-left text-xs"></i> ล้างค่า
             </button>
           </div>
         )}

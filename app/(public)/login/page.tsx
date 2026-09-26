@@ -4,6 +4,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import StatusToast from "@/components/ui/StatusToast";
 
 interface ToastState {
     type: "success" | "error" | "info";
@@ -96,21 +97,11 @@ function LoginForm() {
     return (
         <main className="flex min-h-[calc(100vh-120px)] items-center justify-center px-6 py-12">
             {toast && (
-                <div className="fixed right-5 top-5 z-[100] flex flex-col gap-3 pointer-events-none">
-                    <div
-                        className={`pointer-events-auto flex items-center gap-3 rounded-2xl border-l-4 bg-white px-5 py-3.5 text-xs text-textMain shadow-lg transition-all duration-300 ${toast.type === "success"
-                                ? "border-emerald-400"
-                                : toast.type === "error"
-                                    ? "border-red-400"
-                                    : "border-primary"
-                            }`}
-                    >
-                        <span className="text-base">
-                            {toast.type === "success" ? "✅" : toast.type === "error" ? "❌" : "💡"}
-                        </span>
-                        <span className="font-medium">{toast.message}</span>
-                    </div>
-                </div>
+                <StatusToast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
             )}
 
             <div className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">

@@ -1,0 +1,7 @@
+.centeredDialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}

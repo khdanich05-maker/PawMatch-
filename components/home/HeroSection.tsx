@@ -21,47 +21,49 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-16 sm:mb-20 mt-6 sm:mt-10">
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[500px] sm:min-h-[560px] flex items-center">
+    <section className="w-full mb-8 sm:mb-8 mt-0">
+      <div className="relative w-full overflow-hidden min-h-[780px] sm:min-h-[850px] flex items-center">
         {HERO_BACKGROUND_IMAGES.map((imgUrl, index) => (
           <img
             key={index}
             src={imgUrl}
             alt={`GoHome Hero Background ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover object-right md:object-center transition-opacity duration-1000 ease-in-out ${
-              currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
-            }`}
+            className={`absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
+              }`}
           />
         ))}
 
         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/85 via-black/50 to-transparent z-[1]"></div>
 
-        <div className="relative z-10 p-8 sm:p-14 md:p-16 max-w-2xl text-left">
+        <div className="relative z-10 w-full max-w-[1440px] mx-auto p-8 sm:p-14 md:p-16 text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold mb-6 font-mali border border-white/20 shadow-sm">
-            <i className="fa-solid fa-paw text-[#F39C12]"></i> GoHome - จับคู่ใจ เพื่อสัตว์จร
+            <i className="fa-solid fa-paw text-[#F39C12]"></i> GoHome - เชื่อมรัก ส่งต่อบ้านใหม่อบอุ่น
           </div>
 
           <h1 className="font-mali font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.25] mb-6 text-white drop-shadow-md">
             เพราะทุกชีวิต <br />
-            สมควรมี<span className="text-orange-400">บ้านที่อบอุ่น</span>
+            สมควรมี<span className="text-orange-400">บ้าน</span>
           </h1>
 
-          <p className="text-sm sm:text-base md:text-lg mb-8 leading-relaxed text-gray-200 font-prompt drop-shadow-sm max-w-lg">
-            ศูนย์กลางเชื่อมโยงอาสาสมัคร ศูนย์พักพิง และสัตว์จรจัด พร้อมระบบแบบประเมินจับคู่ความพร้อม เพื่อส่งต่อความรักให้ตรงใจที่สุด
+          <p className="text-xs sm:text-base md:text-lg mb-8 leading-relaxed text-gray-200 font-prompt drop-shadow-sm max-w-xl [text-wrap:balance]">
+            พื้นที่ส่งต่อความรักและการช่วยเหลือ ร่วมเป็นส่วนหนึ่งในการมอบโอกาส <br className="hidden sm:inline" />
+            และบ้านหลังใหม่ที่ปลอดภัยให้กับสัตว์ไร้บ้าน
           </p>
+
+
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/quiz"
+              href="/report"
               className="font-mali font-semibold bg-primary hover:bg-primaryHover text-white px-7 py-3.5 rounded-2xl transition duration-300 shadow-lg text-center flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
             >
-              <i className="fa-solid fa-wand-magic-sparkles"></i> ทำแบบประเมินจับคู่ใจ
+              <i className="fa-solid fa-wand-magic-sparkles"></i> แจ้งพบสัตว์จรจัด
             </Link>
             <Link
               href="/cases"
               className="font-mali font-semibold bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/40 px-7 py-3.5 rounded-2xl transition duration-300 text-center flex items-center justify-center gap-2"
             >
-              ดูเคสสัตว์ที่รอคอยบ้าน <i className="fa-solid fa-arrow-right text-xs"></i>
+              ตามหาสัตว์เลี้ยง <i className="fa-solid fa-arrow-right text-xs"></i>
             </Link>
           </div>
 
@@ -70,9 +72,8 @@ export default function HeroSection() {
               <button
                 key={idx}
                 onClick={() => setCurrentBgIndex(idx)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentBgIndex === idx ? "w-8 bg-orange-400" : "w-2 bg-white/40"
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentBgIndex === idx ? "w-8 bg-orange-400" : "w-2 bg-white/40"
+                  }`}
                 aria-label={`ไปยังรูปที่ ${idx + 1}`}
               />
             ))}

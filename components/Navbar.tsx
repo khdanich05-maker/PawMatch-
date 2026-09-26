@@ -57,7 +57,13 @@ export default function Navbar() {
   }, [isLeftDrawerOpen]);
 
   const displayName = user?.name || user?.username || "ผู้ใช้งาน";
+  const adoptionMenu = user?.role === "admin"
+    ? { href: "/admin/adoptions", label: "" }
+    : user?.role === "user"
+      ? { href: "", label: "" }
+      : null;
   const avatarLetter = displayName.slice(0, 1).toUpperCase();
+
 
   return (
     <>
@@ -71,7 +77,7 @@ export default function Navbar() {
         {/* เมนูกลาง (ตัดคำว่าจัดการข้อมูลสัตว์ Admin ออกตามที่แจ้ง) */}
         <div className="hidden md:flex gap-8 items-center text-[15px] font-prompt text-stone-600">
           <Link href="/" className="hover:text-[#C07055] transition duration-200">หน้าหลัก</Link>
-          <Link href="/cases" className="hover:text-[#C07055] transition duration-200">เคสที่ต้องการความช่วยเหลือ</Link>
+          <Link href="/cases" className="hover:text-[#C07055] transition duration-200">ขอรับเลี้ยง</Link>
           <Link href="/report" className="hover:text-[#C07055] transition duration-200">แจ้งพบเจอสัตว์</Link>
           <Link href="/about" className="hover:text-[#C07055] transition duration-200">เกี่ยวกับเรา</Link>
         </div>
@@ -112,11 +118,17 @@ export default function Navbar() {
             </div>
           ) : (
             /* ปุ่มเมื่อยังไม่ล็อกอิน */
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700 text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+              <Link
+                href="/login"
+                className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700 text-xs sm:text-sm px-1.5 py-1 whitespace-nowrap"
+              >
                 เข้าสู่ระบบ
               </Link>
-              <Link href="/register" className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-5 py-2 rounded-full transition duration-300 shadow-sm text-sm">
+              <Link
+                href="/register"
+                className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-3 py-1.5 sm:px-5 sm:py-2 rounded-full transition duration-300 shadow-sm text-xs sm:text-sm whitespace-nowrap"
+              >
                 สมัครสมาชิก
               </Link>
             </div>
@@ -174,27 +186,23 @@ export default function Navbar() {
             <span className="font-medium">จัดการโปรไฟล์</span>
           </Link>
 
-
           <Link
             href="/"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
-            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
+            <i className="fa-solid fa-house text-stone-400 w-5 text-center" aria-hidden="true"></i>
             <span className="font-medium">หน้าหลัก</span>
           </Link>
-
 
           <Link
             href="/cases"
             onClick={() => setIsLeftDrawerOpen(false)}
             className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
           >
-            <i className="fa-solid fa-id-card text-stone-400 w-5 text-center"></i>
-            <span className="font-medium">เคสที่ต้องการความช่วยเหลือ</span>
+            <i className="fa-solid fa-hand-holding-heart text-stone-400 w-5 text-center"></i>
+            <span className="font-medium">ขอรับเลี้ยง</span>
           </Link>
-
-
 
           <Link
             href="/report"
@@ -214,6 +222,36 @@ export default function Navbar() {
             <span>ประวัติการแจ้งพบสัตว์</span>
           </Link>
 
+
+
+
+          <Link
+            href="/care-tracking"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-notes-medical text-stone-400 w-5 text-center" aria-hidden="true"></i>
+            <span className="font-medium">อัปเดตสถานะการเลี้ยง</span>
+          </Link>
+
+          <Link
+            href="/my-reports"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-clock-rotate-left text-stone-400 w-5 text-center" aria-hidden="true"></i>
+            <span>ประวัติการแจ้งพบสัตว์</span>
+          </Link>
+
+          <Link
+            href="/adoption-requests"
+            onClick={() => setIsLeftDrawerOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+          >
+            <i className="fa-solid fa-clipboard-list text-stone-400 w-5 text-center"></i>
+            <span>คำขอรับเลี้ยงของฉัน</span>
+          </Link>
+
           <Link
             href="/about"
             onClick={() => setIsLeftDrawerOpen(false)}
@@ -224,6 +262,7 @@ export default function Navbar() {
           </Link>
 
           {/* เมนูจัดการสัตว์สำหรับ Admin */}
+
           {user?.role === "admin" && (
             <div className="pt-3 mt-3 border-t border-stone-100">
               <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-3 mb-2">
@@ -235,7 +274,7 @@ export default function Navbar() {
                 className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-[#FDF0EB] text-[#C07055] font-semibold hover:bg-[#fae2d9] transition"
               >
                 <i className="fa-solid fa-shield-cat w-5 text-center text-[#C07055]"></i>
-                <span>จัดการข้อมูลสัตว์ (Admin)</span>
+                <span>จัดการข้อมูลสัตว์</span>
               </Link>
 
               <Link
@@ -256,9 +295,48 @@ export default function Navbar() {
                 <span className="font-medium">จัดการศูนย์พักพิง</span>
               </Link>
 
+              <Link
+                href="/admin/dashboard"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-chart-column text-stone-400 w-5 text-center" aria-hidden="true"></i>
+                <span className="font-medium">รายงานและประวัติย้อนหลัง</span>
+              </Link>
+
+
+              <Link
+                href="/admin/reports"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-magnifying-glass text-stone-400 w-5 text-center" aria-hidden="true"></i>
+                <span className="font-medium">ตรวจสอบการแจ้งพบสัตว์</span>
+              </Link>
 
 
 
+
+
+              <Link
+                href="/admin/care-monitoring"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-stethoscope text-stone-400 w-5 text-center" aria-hidden="true"></i>
+                <span className="font-medium">ตรวจสอบการดูแลสัตว์</span>
+              </Link>
+
+
+
+              <Link
+                href="/admin/adoptions"
+                onClick={() => setIsLeftDrawerOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 rounded-xl hover:bg-[#FDF0EB]/70 hover:text-[#C07055] transition"
+              >
+                <i className="fa-solid fa-handshake text-stone-400 w-5 text-center" aria-hidden="true"></i>
+                <span className="font-medium">ตรวจสอบคำขอรับเลี้ยง</span>
+              </Link>
 
 
 
