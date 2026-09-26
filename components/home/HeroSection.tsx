@@ -21,21 +21,21 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-2 sm:px-4 mb-8 sm:mb-8 mt-0">
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl min-h-[600px] sm:min-h-[680px] flex items-center">
+    <section className="w-full mb-8 sm:mb-8 mt-0">
+      <div className="relative w-full overflow-hidden min-h-[780px] sm:min-h-[850px] flex items-center">
         {HERO_BACKGROUND_IMAGES.map((imgUrl, index) => (
           <img
             key={index}
             src={imgUrl}
             alt={`GoHome Hero Background ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover object-right md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            className={`absolute inset-0 w-full h-full object-cover object-[center_top] md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
               }`}
           />
         ))}
 
         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/85 via-black/50 to-transparent z-[1]"></div>
 
-        <div className="relative z-10 p-8 sm:p-14 md:p-16 max-w-2xl text-left">
+        <div className="relative z-10 w-full max-w-[1440px] mx-auto p-8 sm:p-14 md:p-16 text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold mb-6 font-mali border border-white/20 shadow-sm">
             <i className="fa-solid fa-paw text-[#F39C12]"></i> GoHome - เชื่อมรัก ส่งต่อบ้านใหม่อบอุ่น
           </div>
