@@ -18,7 +18,13 @@ function FormPage() {
     async function load() {
       const session = await fetch("/api/auth/me").then((response) => response.ok ? response.json() : { user: null });
       if (!session.user) { router.replace(`/login?next=/adoption-requests/new/${animalId}`); return; }
-      if (session.user.role !== "user") { setMessage("เฉพาะบัญชีผู้ใช้งานทั่วไปเท่านั้นที่ส่งคำขอรับเลี้ยงได้"); return; }
+
+      // ✅ อนุญาตให้ทั้ง user และ admin เข้าไปกรอกแบบฟอร์มได้
+      if (session.user.role !== "user" && session.user.role !== "admin") {
+        setMessage("เฉพาะบัญชีผู้ใช้งานทั่วไปเท่านั้นที่ส่งคำขอรับเลี้ยงได้");
+        return;
+      }
+
       const { data, error } = await supabase.from("animals").select("*, shelters (shelter_name, province, address, contact_phone)").eq("animal_id", animalId).maybeSingle();
       if (!active) return;
       if (error || !data || data.status !== "รอคนดูแล") { setMessage("ไม่พบสัตว์ที่พร้อมรับคำขอแล้ว"); return; }
