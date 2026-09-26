@@ -46,7 +46,7 @@ export default function StatsSection() {
               stats.totalAnimals.toLocaleString()
             )}
           </div>
-          <div className="text-[11px] sm:text-sm text-gray-600 font-prompt leading-tight">
+          <div className="text-[11px] sm:text-sm text-gray-600 font-prompt leading-tight whitespace-nowrap">
             สัตว์ที่ได้รับการช่วยเหลือ
           </div>
         </div>

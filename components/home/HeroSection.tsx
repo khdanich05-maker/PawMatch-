@@ -28,9 +28,8 @@ export default function HeroSection() {
             key={index}
             src={imgUrl}
             alt={`GoHome Hero Background ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover object-right md:object-center transition-opacity duration-1000 ease-in-out ${
-              currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
-            }`}
+            className={`absolute inset-0 w-full h-full object-cover object-right md:object-center transition-opacity duration-1000 ease-in-out ${currentBgIndex === index ? "opacity-100 scale-100" : "opacity-0 scale-105"
+              }`}
           />
         ))}
 
@@ -38,17 +37,20 @@ export default function HeroSection() {
 
         <div className="relative z-10 p-8 sm:p-14 md:p-16 max-w-2xl text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold mb-6 font-mali border border-white/20 shadow-sm">
-            <i className="fa-solid fa-paw text-[#F39C12]"></i> GoHome - จับคู่ใจ เพื่อสัตว์จร
+            <i className="fa-solid fa-paw text-[#F39C12]"></i> GoHome - เชื่อมรัก ส่งต่อบ้านใหม่อบอุ่น
           </div>
 
           <h1 className="font-mali font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.25] mb-6 text-white drop-shadow-md">
             เพราะทุกชีวิต <br />
-            สมควรมี<span className="text-orange-400">บ้านที่อบอุ่น</span>
+            สมควรมี<span className="text-orange-400">บ้าน</span>
           </h1>
 
-          <p className="text-sm sm:text-base md:text-lg mb-8 leading-relaxed text-gray-200 font-prompt drop-shadow-sm max-w-lg">
-            ศูนย์กลางเชื่อมโยงอาสาสมัคร ศูนย์พักพิง และสัตว์จรจัด พร้อมระบบแบบประเมินจับคู่ความพร้อม เพื่อส่งต่อความรักให้ตรงใจที่สุด
+          <p className="text-xs sm:text-base md:text-lg mb-8 leading-relaxed text-gray-200 font-prompt drop-shadow-sm max-w-xl [text-wrap:balance]">
+            พื้นที่ส่งต่อความรักและการช่วยเหลือ ร่วมเป็นส่วนหนึ่งในการมอบโอกาส <br className="hidden sm:inline" />
+            และบ้านหลังใหม่ที่ปลอดภัยให้กับสัตว์ไร้บ้าน
           </p>
+
+
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
@@ -70,9 +72,8 @@ export default function HeroSection() {
               <button
                 key={idx}
                 onClick={() => setCurrentBgIndex(idx)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentBgIndex === idx ? "w-8 bg-orange-400" : "w-2 bg-white/40"
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentBgIndex === idx ? "w-8 bg-orange-400" : "w-2 bg-white/40"
+                  }`}
                 aria-label={`ไปยังรูปที่ ${idx + 1}`}
               />
             ))}

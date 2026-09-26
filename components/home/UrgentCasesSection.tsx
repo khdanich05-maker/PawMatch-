@@ -42,13 +42,13 @@ export default function UrgentCasesSection() {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-            <span className="text-xs font-semibold text-primary font-mali">ต้องการความรักด่วนที่สุด</span>
+            <span className="text-xs font-semibold text-primary font-mali">มอบโอกาสครั้งใหม่</span>
           </div>
           <h2 className="font-mali font-semibold text-xl sm:text-3xl text-textMain leading-[1.4]">
-            น้องๆ ที่รอคอยบ้านมาแสนนาน 🐾
+            เปลี่ยนชีวิตน้องๆ ด้วยบ้านที่อบอุ่น 🐾
           </h2>
           <p className="text-gray-400 text-xs sm:text-sm mt-1 font-prompt leading-relaxed">
-            เปิดใจมอบพื้นที่เล็กๆ ให้กับเพื่อนสี่ขาที่เฝ้ารอความรักจากครอบครัวใหม่
+            เปิดใจมอบพื้นที่เล็กๆ ให้กับเพื่อนสี่ขาที่พร้อมมอบความรักและความซื่อสัตย์ให้คุณ
           </p>
         </div>
         <Link
