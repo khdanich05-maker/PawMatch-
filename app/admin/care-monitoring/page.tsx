@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatThaiDateBE } from "@/lib/dateHelper";
 
 export default function AdminCareMonitoringPage() {
   const router = useRouter();
@@ -55,7 +56,8 @@ export default function AdminCareMonitoringPage() {
             animal_id,
             match_status,
             start_date,
-            users (username, phone, email),
+            end_date,
+            users:users!matches_user_id_fkey (user_id, full_name, phone),
             animals (animal_id, name, species, image_url, status)
           )
         `)
@@ -84,11 +86,10 @@ export default function AdminCareMonitoringPage() {
 
     setUpdatingMatchId(matchId);
     try {
-      // 1. อัปเดตสถานะในตาราง matches เป็น 'ได้บ้านแล้ว' หรือสิ้นสุดการดูแล
+      // 1. อัปเดต end_date ในตาราง matches เพื่อปิดเคสการดูแล
       const { error: matchError } = await supabase
         .from("matches")
         .update({
-          match_status: "สิ้นสุดการดูแล",
           end_date: new Date().toISOString(),
         })
         .eq("match_id", matchId);
@@ -163,8 +164,8 @@ export default function AdminCareMonitoringPage() {
           {careLogs.map((log) => {
             const pet = log.matches?.animals;
             const adopter = log.matches?.users;
-            const matchStatus = log.matches?.match_status;
-            const isClosed = matchStatus === "ได้บ้านแล้ว";
+            const isClosed = Boolean(log.matches?.end_date);
+            const matchStatus = isClosed ? "สิ้นสุดการดูแล" : "กำลังดูแล";
 
             return (
               <div
@@ -181,7 +182,7 @@ export default function AdminCareMonitoringPage() {
                       น้อง {pet?.name || "ไม่มีชื่อ"} ({pet?.species || "สัตว์"})
                     </h3>
                     <p className="text-[11px] text-stone-400 truncate">
-                      ผู้รับเลี้ยง: {adopter?.username || "-"} {adopter?.phone ? `(${adopter.phone})` : ""}
+                      ผู้รับเลี้ยง: {adopter?.full_name || adopter?.username || "-"} {adopter?.phone ? `(${adopter.phone})` : ""}
                     </p>
                   </div>
                 </div>
@@ -192,11 +193,7 @@ export default function AdminCareMonitoringPage() {
                     {log.activity_type}
                   </span>
                   <span className="text-[11px] text-stone-400">
-                    {new Date(log.log_date).toLocaleDateString("th-TH", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {formatThaiDateBE(log.log_date)}
                   </span>
                 </div>
 
