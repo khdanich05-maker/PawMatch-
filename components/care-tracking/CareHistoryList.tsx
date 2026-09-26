@@ -3,6 +3,7 @@
 
 import React, { useState } from "react";
 import { CareLog } from "@/types/careLog";
+import { formatThaiDateBE } from "@/lib/dateHelper";
 
 interface Props {
   careLogs: CareLog[];
@@ -11,20 +12,6 @@ interface Props {
 
 export default function CareHistoryList({ careLogs, loading }: Props) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  // แปลงวันที่ภาษาไทย
-  const formatThaiDate = (dateString: string) => {
-    try {
-      const d = new Date(dateString);
-      return d.toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   // เลือกไอคอนตามประเภทกิจกรรม
   const getActivityIcon = (type: string) => {
@@ -104,7 +91,7 @@ export default function CareHistoryList({ careLogs, loading }: Props) {
                       {log.activity_type}
                     </span>
                     <span className="text-[11px] text-stone-400 shrink-0">
-                      {formatThaiDate(log.log_date)}
+                      {formatThaiDateBE(log.log_date)}
                     </span>
                   </div>
 
