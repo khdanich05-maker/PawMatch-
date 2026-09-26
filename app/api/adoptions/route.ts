@@ -6,7 +6,7 @@ const MATCH_COLUMNS = "match_id, animal_id, user_id, start_date, match_status, m
 
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "user") return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าดูคำขอ" }, { status: 403 });
+  if (!user || (user.role !== "user" && user.role !== "admin")) return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าดูคำขอ" }, { status: 403 });
   const { data, error } = await supabaseAdmin.from("matches").select(MATCH_COLUMNS).eq("user_id", user.user_id).order("start_date", { ascending: false });
   if (error) return NextResponse.json({ error: "ไม่สามารถโหลดคำขอรับเลี้ยงได้" }, { status: 500 });
   const matches = data ?? [];
@@ -20,7 +20,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "กรุณาเข้าสู่ระบบก่อนส่งคำขอ" }, { status: 401 });
-  if (user.role !== "user") return NextResponse.json({ error: "เฉพาะบัญชีผู้ใช้งานทั่วไปเท่านั้นที่ส่งคำขอรับเลี้ยงได้" }, { status: 403 });
+  if (user.role !== "user" && user.role !== "admin") return NextResponse.json({ error: "เฉพาะบัญชีผู้ใช้งานทั่วไปเท่านั้นที่ส่งคำขอรับเลี้ยงได้" }, { status: 403 });
   let body;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "รูปแบบ JSON ไม่ถูกต้อง" }, { status: 400 }); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "ข้อมูลคำขอไม่ถูกต้อง" }, { status: 400 });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "user") return NextResponse.json({ error: "ไม่มีสิทธิ์ยกเลิกคำขอ" }, { status: 403 });
+  if (!user || (user.role !== "user" && user.role !== "admin")) return NextResponse.json({ error: "ไม่มีสิทธิ์ยกเลิกคำขอ" }, { status: 403 });
   const matchId = new URL(request.url).searchParams.get("requestId");
   if (!matchId) return NextResponse.json({ error: "ไม่พบคำขอ" }, { status: 400 });
   const { data, error } = await supabaseAdmin.from("matches").delete().eq("match_id", matchId).eq("user_id", user.user_id).eq("match_status", "รออนุมัติ").select("match_id");
