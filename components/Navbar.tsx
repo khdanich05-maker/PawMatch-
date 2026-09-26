@@ -118,11 +118,17 @@ export default function Navbar() {
             </div>
           ) : (
             /* ปุ่มเมื่อยังไม่ล็อกอิน */
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700 text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+              <Link
+                href="/login"
+                className="font-mali font-semibold hover:text-[#C07055] transition duration-200 text-stone-700 text-xs sm:text-sm px-1.5 py-1 whitespace-nowrap"
+              >
                 เข้าสู่ระบบ
               </Link>
-              <Link href="/register" className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-5 py-2 rounded-full transition duration-300 shadow-sm text-sm">
+              <Link
+                href="/register"
+                className="font-mali font-semibold bg-[#E29578] hover:bg-[#C07055] text-white px-3 py-1.5 sm:px-5 sm:py-2 rounded-full transition duration-300 shadow-sm text-xs sm:text-sm whitespace-nowrap"
+              >
                 สมัครสมาชิก
               </Link>
             </div>
