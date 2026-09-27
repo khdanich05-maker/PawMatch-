@@ -1,5 +1,4 @@
-// components/ui/StatusToast.tsx
-
+    
 "use client";
 
 import React, { useEffect } from "react";
@@ -9,13 +8,14 @@ export type ToastType = "success" | "error" | "info";
 interface StatusToastProps {
     type: ToastType;
     message: string;
+    title?: string;
     duration?: number;
     onClose: () => void;
 }
 
 const toastConfig = {
     success: {
-        title: "เข้าสู่ระบบสำเร็จ",
+        title: "สำเร็จ",
         icon: (
             <svg
                 viewBox="0 0 24 24"
@@ -38,7 +38,7 @@ const toastConfig = {
     },
 
     error: {
-        title: "เข้าสู่ระบบไม่สำเร็จ",
+        title: "เกิดข้อผิดพลาด",
         icon: (
             <svg
                 viewBox="0 0 24 24"
@@ -74,7 +74,7 @@ const toastConfig = {
                 <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                    d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1-18 0Z"
                 />
             </svg>
         ),
@@ -87,6 +87,7 @@ const toastConfig = {
 export default function StatusToast({
     type,
     message,
+    title,
     duration = 3500,
     onClose,
 }: StatusToastProps) {
@@ -129,7 +130,7 @@ export default function StatusToast({
                     {/* Message */}
                     <div className="min-w-0 flex-1 pt-0.5">
                         <p className="text-sm font-semibold leading-5 text-textMain">
-                            {config.title}
+                            {title ?? config.title}
                         </p>
 
                         <p className="mt-1 text-sm leading-5 text-gray-500">
@@ -185,3 +186,4 @@ export default function StatusToast({
         </div>
     );
 }
+

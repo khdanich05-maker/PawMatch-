@@ -51,11 +51,7 @@ export async function POST(request: Request) {
       name: user.username,
     });
 
-    // 4. กำหนดเส้นทาง Redirect ตาม Role ของผู้ใช้งาน
-    // const redirectTo =
-    //   user.role === "admin" || user.role === "shelter"
-    //     ? "/admin/dashboard"
-    //     : "/dashboard";
+  
     // 4. กำหนดเส้นทาง Redirect ไปยังหน้าแรก (Landing Page)
     const redirectTo = "/";
 

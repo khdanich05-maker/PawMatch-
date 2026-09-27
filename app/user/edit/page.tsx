@@ -1,589 +1,1189 @@
+
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import StatusToast, { type ToastType, } from "@/components/ui/StatusToast";
 import { THAI_PROVINCES } from "@/constants/provinces";
-import type { User, UpdateProfilePayload, AddressDetails } from "@/types/user";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHouse } from "@fortawesome/free-solid-svg-icons";
+
+import type {
+  User,
+  UpdateProfilePayload,
+  AddressDetails,
+} from "@/types/user";
+
+type ToastState = {
+  type: ToastType;
+  message: string;
+  title?: string;
+} | null;
+
+const DEFAULT_ADDRESS_DETAILS: AddressDetails = {
+  house_no: "",
+  village: "",
+  moo: "",
+  soi: "",
+  road: "",
+  province: "",
+  district: "",
+  subdistrict: "",
+  zipcode: "",
+};
+
+function normalizeAddressDetails(
+  value?: AddressDetails | null
+): AddressDetails {
+  return {
+    house_no: value?.house_no ?? "",
+    village: value?.village ?? "",
+    moo: value?.moo ?? "",
+    soi: value?.soi ?? "",
+    road: value?.road ?? "",
+    province: value?.province ?? "",
+    district: value?.district ?? "",
+    subdistrict: value?.subdistrict ?? "",
+    zipcode: value?.zipcode ?? "",
+  };
+}
+
+function buildAddress(
+  address: AddressDetails
+): string {
+  const parts: string[] = [];
+
+  if (address.house_no.trim()) {
+    parts.push(address.house_no.trim());
+  }
+
+  if (address.village.trim()) {
+    parts.push(address.village.trim());
+  }
+
+  if (address.moo.trim()) {
+    parts.push(`หมู่ ${address.moo.trim()}`);
+  }
+
+  if (address.soi.trim()) {
+    parts.push(`ซอย${address.soi.trim()}`);
+  }
+
+  if (address.road.trim()) {
+    parts.push(`ถนน${address.road.trim()}`);
+  }
+
+  const isBangkok =
+    address.province === "กรุงเทพมหานคร";
+
+  if (address.subdistrict.trim()) {
+    parts.push(
+      isBangkok
+        ? `แขวง${address.subdistrict.trim()}`
+        : `ตำบล${address.subdistrict.trim()}`
+    );
+  }
+
+  if (address.district.trim()) {
+    parts.push(
+      isBangkok
+        ? `เขต${address.district.trim()}`
+        : `อำเภอ${address.district.trim()}`
+    );
+  }
+
+  if (address.province.trim()) {
+    parts.push(address.province.trim());
+  }
+
+  if (address.zipcode.trim()) {
+    parts.push(address.zipcode.trim());
+  }
+
+  return parts.join(" ");
+}
 
 export default function EditProfilePage() {
+  const router = useRouter();
+
+  // --------------------------------------------------
+  // Page state
+  // --------------------------------------------------
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
-  // General Profile State
+  const [toast, setToast] =
+    useState<ToastState>(null);
+
+  // --------------------------------------------------
+  // Profile state
+  // --------------------------------------------------
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [birthdate, setBirthdate] = useState("");
-  const [salary, setSalary] = useState<number | "">("");
-  const [housing, setHousing] = useState("บ้านเดี่ยว (มีรั้วรอบขอบชิด)");
-  const [petPermission, setPetPermission] = useState(true);
-  const [animalCount, setAnimalCount] = useState<number>(0);
-  const [residenceNote, setResidenceNote] = useState("");
+  const [phone, setPhone] = useState("");
 
-  // Sub-address Fields State
-  const [houseNo, setHouseNo] = useState("");
-  const [village, setVillage] = useState("");
-  const [moo, setMoo] = useState("");
-  const [soi, setSoi] = useState("");
-  const [road, setRoad] = useState("");
-  const [province, setProvince] = useState("");
-  const [district, setDistrict] = useState("");
-  const [subdistrict, setSubdistrict] = useState("");
-  const [zipcode, setZipcode] = useState("");
+  const [dateOfBirth, setDateOfBirth] =
+    useState("");
 
-  // Toast State
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [salary, setSalary] =
+    useState<number | "">("");
 
-  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
-    setToast({ message, type });
-    setTimeout(() => {
-      setToast(null);
-    }, 3500);
-  };
+  const [accommodationType, setAccommodationType] =
+    useState("");
 
-  // Helper ประกอบข้อความที่อยู่เต็ม
-  const buildFullAddress = () => {
-    const isBkk = province === "กรุงเทพมหานคร";
-    const parts: string[] = [];
+  const [petPermission, setPetPermission] =
+    useState(true);
 
-    if (houseNo.trim()) parts.push(houseNo.trim());
-    if (village.trim()) parts.push(village.trim());
-    if (moo.trim()) parts.push(`หมู่ ${moo.trim()}`);
-    if (soi.trim()) parts.push(`ซอย${soi.trim()}`);
-    if (road.trim()) parts.push(`ถนน${road.trim()}`);
+  const [animalCount, setAnimalCount] =
+    useState(0);
 
-    if (subdistrict.trim()) {
-      parts.push(isBkk ? `แขวง${subdistrict.trim()}` : `ตำบล${subdistrict.trim()}`);
-    }
-    if (district.trim()) {
-      parts.push(isBkk ? `เขต${district.trim()}` : `อำเภอ${district.trim()}`);
-    }
-    if (province.trim()) {
-      parts.push(isBkk ? province.trim() : `จังหวัด${province.trim()}`);
-    }
-    if (zipcode.trim()) {
-      parts.push(zipcode.trim());
-    }
+  const [residenceNote, setResidenceNote] =
+    useState("");
 
-    return parts.join(" ").trim();
-  };
+  // --------------------------------------------------
+  // Address state
+  // --------------------------------------------------
+
+  const [addressDetails, setAddressDetails] =
+    useState<AddressDetails>(
+      DEFAULT_ADDRESS_DETAILS
+    );
+
+  // --------------------------------------------------
+  // Helpers
+  // --------------------------------------------------
+
+  function showToast(
+    type: ToastType,
+    message: string,
+    title?: string
+  ) {
+    setToast({
+      type,
+      message,
+      title,
+    });
+  }
+
+  function updateAddress(
+    field: keyof AddressDetails,
+    value: string
+  ) {
+    setAddressDetails((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function applyUserToForm(user: User) {
+    setFullName(user.full_name ?? "");
+    setEmail(user.email ?? "");
+    setPhone(user.phone ?? "");
+
+    setDateOfBirth(
+      user.date_of_birth
+        ? user.date_of_birth.slice(0, 10)
+        : ""
+    );
+
+    setSalary(
+      user.salary === null ||
+        user.salary === undefined
+        ? ""
+        : user.salary
+    );
+
+    setAccommodationType(
+      user.accommodation_type ?? ""
+    );
+
+    setPetPermission(
+      user.pet_permission ?? true
+    );
+
+    setAnimalCount(
+      user.animal_count ?? 0
+    );
+
+    setResidenceNote(
+      user.residence_note ?? ""
+    );
+
+    setAddressDetails(
+      normalizeAddressDetails(
+        user.address_details
+      )
+    );
+  }
+
+  // --------------------------------------------------
+  // Load current profile
+  // --------------------------------------------------
 
   useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const res = await fetch("/api/user/profile");
-        const json = await res.json();
+    let active = true;
 
-        if (!res.ok) {
-          showToast(json.message || "ไม่สามารถโหลดข้อมูลโปรไฟล์ได้", "error");
+    async function loadProfile() {
+      try {
+        const response = await fetch(
+          "/api/user/profile",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!active) return;
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.replace(
+              "/login?next=/user/edit"
+            );
+            return;
+          }
+
+          showToast(
+            "error",
+            data.message ||
+            "ไม่สามารถโหลดข้อมูลโปรไฟล์ได้",
+            "โหลดข้อมูลไม่สำเร็จ"
+          );
+
           return;
         }
 
-        const data: User = json.user;
-        setFullName(data.full_name || "");
-        setEmail(data.email || "");
-        setBirthdate(data.date_of_birth ? data.date_of_birth.substring(0, 10) : "");
-        setSalary(data.salary !== null && data.salary !== undefined ? data.salary : "");
-        setHousing(data.accommodation_type || "บ้านเดี่ยว (มีรั้วรอบขอบชิด)");
-        setPetPermission(data.pet_permission ?? true);
-        setProvince(data.province || "");
-        setAnimalCount(data.animal_count || 0);
-        setResidenceNote(data.residence_note || "");
+        if (!data.user) {
+          showToast(
+            "error",
+            "ไม่พบข้อมูลผู้ใช้งาน",
+            "ไม่พบข้อมูล"
+          );
 
-        // Bind ค่าช่องย่อยจาก address_details
-        if (data.address_details) {
-          setHouseNo(data.address_details.house_no || "");
-          setVillage(data.address_details.village || "");
-          setMoo(data.address_details.moo || "");
-          setSoi(data.address_details.soi || "");
-          setRoad(data.address_details.road || "");
-          setDistrict(data.address_details.district || "");
-          setSubdistrict(data.address_details.subdistrict || "");
-          setZipcode(data.address_details.zipcode || "");
+          return;
         }
-      } catch {
-        showToast("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", "error");
+
+        applyUserToForm(
+          data.user as User
+        );
+      } catch (error) {
+        console.error(
+          "Load profile error:",
+          error
+        );
+
+        if (!active) return;
+
+        showToast(
+          "error",
+          "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์",
+          "โหลดข้อมูลไม่สำเร็จ"
+        );
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
-    void fetchProfile();
-  }, []);
+    void loadProfile();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  // --------------------------------------------------
+  // Submit
+  // --------------------------------------------------
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
     if (saving) return;
 
     if (!fullName.trim()) {
-      showToast("กรุณากรอกชื่อ-นามสกุล", "error");
+      showToast(
+        "error",
+        "กรุณากรอกชื่อ-นามสกุล",
+        "ข้อมูลไม่ครบถ้วน"
+      );
+      return;
+    }
+
+    if (!accommodationType) {
+      showToast(
+        "error",
+        "กรุณาเลือกลักษณะที่พักอาศัย",
+        "ข้อมูลไม่ครบถ้วน"
+      );
+      return;
+    }
+
+    if (!addressDetails.house_no.trim()) {
+      showToast(
+        "error",
+        "กรุณากรอกบ้านเลขที่",
+        "ข้อมูลที่อยู่ไม่ครบ"
+      );
+      return;
+    }
+
+    if (!addressDetails.province.trim()) {
+      showToast(
+        "error",
+        "กรุณาเลือกจังหวัด",
+        "ข้อมูลที่อยู่ไม่ครบ"
+      );
+      return;
+    }
+
+    if (!addressDetails.district.trim()) {
+      showToast(
+        "error",
+        "กรุณากรอกอำเภอ / เขต",
+        "ข้อมูลที่อยู่ไม่ครบ"
+      );
+      return;
+    }
+
+    if (!addressDetails.subdistrict.trim()) {
+      showToast(
+        "error",
+        "กรุณากรอกตำบล / แขวง",
+        "ข้อมูลที่อยู่ไม่ครบ"
+      );
       return;
     }
 
     setSaving(true);
 
-    const fullAddress = buildFullAddress();
-    const addressDetails: AddressDetails = {
-      house_no: houseNo.trim(),
-      village: village.trim(),
-      moo: moo.trim(),
-      soi: soi.trim(),
-      road: road.trim(),
-      province: province.trim(),
-      district: district.trim(),
-      subdistrict: subdistrict.trim(),
-      zipcode: zipcode.trim(),
-    };
+    const normalizedAddress =
+      normalizeAddressDetails(
+        addressDetails
+      );
 
     const payload: UpdateProfilePayload = {
       full_name: fullName.trim(),
-      date_of_birth: birthdate,
-      salary: salary !== "" ? Number(salary) : null,
-      accommodation_type: housing,
-      pet_permission: petPermission,
-      address: fullAddress,
-      province: province.trim(),
-      animal_count: Number(animalCount) || 0,
-      residence_note: residenceNote.trim(),
-      address_details: addressDetails,
+
+      date_of_birth: dateOfBirth,
+
+      salary:
+        salary === ""
+          ? null
+          : Number(salary),
+
+      accommodation_type:
+        accommodationType.trim(),
+
+      pet_permission:
+        petPermission,
+
+      address:
+        buildAddress(
+          normalizedAddress
+        ),
+
+      province:
+        normalizedAddress.province,
+
+      address_details:
+        normalizedAddress,
+
+      animal_count:
+        Number(animalCount) || 0,
+
+      residence_note:
+        residenceNote.trim(),
     };
 
     try {
-      const res = await fetch("/api/user/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        "/api/user/profile",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(
+            payload
+          ),
+        }
+      );
 
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || "บันทึกข้อมูลไม่สำเร็จ");
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          "ไม่สามารถบันทึกข้อมูลได้"
+        );
       }
 
-      showToast("บันทึกข้อมูลส่วนตัวและที่พักอาศัยเรียบร้อยแล้ว!", "success");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึก";
-      showToast(msg, "error");
+      if (data.user) {
+        applyUserToForm(
+          data.user as User
+        );
+      }
+
+      showToast(
+        "success",
+        "ข้อมูลส่วนตัวของคุณถูกบันทึกเรียบร้อยแล้ว",
+        "บันทึกข้อมูลสำเร็จ"
+      );
+    } catch (error) {
+      console.error(
+        "Update profile error:",
+        error
+      );
+
+      showToast(
+        "error",
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
+        "บันทึกข้อมูลไม่สำเร็จ"
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  function handleReset() {
-    setBirthdate("");
-    setSalary("");
-    setHouseNo("");
-    setVillage("");
-    setMoo("");
-    setSoi("");
-    setRoad("");
-    setProvince("");
-    setDistrict("");
-    setSubdistrict("");
-    setZipcode("");
-    setAnimalCount(0);
-    setResidenceNote("");
-    showToast("ล้างข้อมูลบางส่วนเรียบร้อยแล้ว", "info");
-  }
+  // --------------------------------------------------
+  // Loading
+  // --------------------------------------------------
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="font-mali text-stone-500">กำลังโหลดข้อมูลโปรไฟล์...</p>
-      </div>
+      <main className="min-h-screen bg-[#FCFAF8] px-4 py-12 font-prompt sm:px-6 sm:py-20">
+        <section
+          aria-labelledby="profile-loading-title"
+          className="mx-auto max-w-lg rounded-[28px] border border-[#F1D8CD] bg-white px-6 py-10 text-center shadow-sm sm:p-10"
+        >
+          <span
+            aria-hidden="true"
+            className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#FFF0EB] text-2xl"
+          >
+            👤
+          </span>
+
+          <h1
+            id="profile-loading-title"
+            className="mt-5 font-mali text-2xl font-semibold leading-relaxed text-stone-700"
+          >
+            แก้ไขข้อมูลส่วนตัว
+          </h1>
+
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-3 text-sm leading-7 text-stone-600"
+          >
+            กำลังเตรียมข้อมูลโปรไฟล์…
+          </p>
+        </section>
+      </main>
     );
   }
 
-  const fullAddressPreview = buildFullAddress();
+  // --------------------------------------------------
+  // Page
+  // --------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8] text-[#44403C] py-10 px-4 sm:px-6">
-      {/* Toast Notification */}
+    <main className="min-h-screen bg-[#FCFAF8] px-4 py-6 font-prompt sm:px-6 sm:py-10">
       {toast && (
-        <div className="fixed top-5 right-5 z-[100] pointer-events-auto">
-          <div
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg border-l-4 bg-white text-stone-800 font-prompt text-xs transition-all ${
-              toast.type === "success"
-                ? "border-emerald-500"
-                : toast.type === "error"
-                ? "border-rose-500"
-                : "border-primary"
-            }`}
-          >
-            <span>{toast.type === "success" ? "✅" : toast.type === "error" ? "❌" : "💡"}</span>
-            <span className="font-medium">{toast.message}</span>
-          </div>
-        </div>
+        <StatusToast
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() =>
+            setToast(null)
+          }
+        />
       )}
 
-      <main className="max-w-4xl mx-auto w-full">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-stone-800 font-mali">ข้อมูลส่วนตัวและคุณสมบัติผู้รับเลี้ยง</h2>
-          <p className="text-sm text-stone-500 font-prompt mt-1">
-            กรอกข้อมูลเหล่านี้ไว้เพื่อความสะดวก ระบบจะดึงข้อมูลชุดนี้ไปใส่ใน <strong>แบบฟอร์มขอรับเลี้ยงสัตว์</strong> อัตโนมัติ
-          </p>
-          <div className="mt-4 p-4 rounded-2xl bg-bgAccent border border-primary/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3 text-xs font-prompt text-primaryHover">
-              <span className="text-lg">💡</span>
-              <span>กรอกข้อมูลให้ครบถ้วนเพื่อเพิ่มโอกาสในการอนุมัติรับเลี้ยงน้องหมา-แมว</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-              className="text-xs font-prompt font-semibold text-primary hover:text-stone-800 underline self-start sm:self-auto cursor-pointer"
-            >
-              ดูตัวอย่างฟอร์มขอรับเลี้ยง ➔
-            </button>
+      <div className="mx-auto max-w-3xl">
+        {/* Back */}
+        <nav
+          aria-label="กลับไปหน้าโปรไฟล์"
+          className="mb-6 sm:mb-8"
+        >
+          <Link
+            href="/user/profile"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E8D9D1] bg-white px-4 py-2 text-sm font-medium text-[#88432F] transition-colors hover:border-[#D6B5A6] hover:bg-[#FFF0EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A65343] focus-visible:ring-offset-4"
+          >
+            <span aria-hidden="true">
+              ←
+            </span>
+
+            กลับไปหน้าโปรไฟล์
+          </Link>
+        </nav>
+
+        {/* Header */}
+        <header className="mb-6 flex items-start gap-4 sm:mb-8 sm:gap-5">
+          <span
+            aria-hidden="true"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#F1D8CD] bg-[#FFF0EB] text-2xl sm:h-14 sm:w-14"
+          >
+            👤
+          </span>
+
+          <div className="min-w-0">
+            <h1 className="font-mali text-2xl font-semibold leading-relaxed text-stone-700 sm:text-3xl">
+              แก้ไขข้อมูลส่วนตัว
+            </h1>
+
+            <p className="mt-1 text-sm leading-7 text-stone-500">
+              กรุณาตรวจสอบและแก้ไขข้อมูลของคุณให้เป็นปัจจุบัน
+            </p>
           </div>
-        </div>
+        </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Section 1: ข้อมูลทั่วไป */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
-            <h3 className="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2 font-mali">
-              <span>👤</span> ข้อมูลทั่วไปของผู้ใช้งาน
-            </h3>
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-[28px] border border-[#F1D8CD] bg-white p-5 shadow-sm sm:p-8"
+        >
+          {/* ========================================
+                        Section 1
+                    ======================================== */}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 font-prompt text-xs">
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">ชื่อ-นามสกุล *</label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="เช่น สมชาย ใจดี"
-                  className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                />
-              </div>
+          <section
+            aria-labelledby="personal-info-title"
+            className="space-y-5"
+          >
+            <div>
+              <h2
+                id="personal-info-title"
+                className="font-mali text-xl font-semibold text-stone-700"
+              >
+                ข้อมูลส่วนตัว
+              </h2>
 
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">อีเมล (ตามบัญชีผู้ใช้)</label>
-                <input
-                  type="email"
-                  disabled
-                  value={email}
-                  className="w-full px-4 py-3 bg-stone-100 border border-stone-200 text-stone-400 rounded-xl cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">วัน/เดือน/ปีเกิด</label>
-                <input
-                  type="date"
-                  value={birthdate}
-                  onChange={(e) => setBirthdate(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                />
-              </div>
-
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">รายได้เฉลี่ยต่อเดือน (บาท)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="500"
-                  value={salary}
-                  onChange={(e) => setSalary(e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="เช่น 35000"
-                  className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                />
-              </div>
+              <p className="mt-1 text-sm leading-6 text-stone-500">
+                ข้อมูลพื้นฐานสำหรับใช้ในระบบ
+              </p>
             </div>
-          </div>
 
-          {/* Section 2: ข้อมูลที่พักอาศัย (ตาม Mockup ช่องแยกย่อย) */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-6">
-            <h3 className="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2 font-mali">
-              <span>🏡</span> ข้อมูลที่พักอาศัย (Residential)
-            </h3>
-
-            <div className="space-y-4 font-prompt text-xs">
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">ลักษณะที่พักอาศัย</label>
-                <select
-                  value={housing}
-                  onChange={(e) => setHousing(e.target.value)}
-                  className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
+            <div className="grid gap-5 sm:grid-cols-2">
+              {/* Full name */}
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="full_name"
+                  className="mb-2 block text-sm font-medium text-stone-700"
                 >
-                  <option value="บ้านเดี่ยว (มีรั้วรอบขอบชิด)">บ้านเดี่ยว (มีรั้วรอบขอบชิด)</option>
-                  <option value="ทาวน์โฮม / ทาวน์เฮาส์">ทาวน์โฮม / ทาวน์เฮาส์</option>
-                  <option value="คอนโดมิเนียม (Pet-Friendly)">คอนโดมิเนียม (Pet-Friendly)</option>
-                  <option value="อพาร์ตเมนต์ / หอพัก">อพาร์ตเมนต์ / หอพัก</option>
-                </select>
-              </div>
-
-              {/* Sub-section: ที่อยู่แบบแยกกล่องกรอก */}
-              <div className="pt-2">
-                <p className="font-semibold text-stone-800 mb-3 text-xs flex items-center gap-1.5">
-                  <span className="text-primary">📍</span> ที่อยู่โดยละเอียด (กรอกข้อมูลเฉพาะตัว)
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-stone-600 mb-1">บ้านเลขที่ <span className="text-red-400">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      value={houseNo}
-                      onChange={(e) => setHouseNo(e.target.value)}
-                      placeholder="เช่น 88/12"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 mb-1">หมู่บ้าน / อาคาร / คอนโด</label>
-                    <input
-                      type="text"
-                      value={village}
-                      onChange={(e) => setVillage(e.target.value)}
-                      placeholder="เช่น หมู่บ้านแสนสุข"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 mb-1">หมู่ที่</label>
-                    <input
-                      type="text"
-                      value={moo}
-                      onChange={(e) => setMoo(e.target.value)}
-                      placeholder="เช่น 4"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 mb-1">ซอย</label>
-                    <input
-                      type="text"
-                      value={soi}
-                      onChange={(e) => setSoi(e.target.value)}
-                      placeholder="เช่น พหลโยธิน 32"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                  <div className="sm:col-span-2 md:col-span-2">
-                    <label className="block text-stone-600 mb-1">ถนน</label>
-                    <input
-                      type="text"
-                      value={road}
-                      onChange={(e) => setRoad(e.target.value)}
-                      placeholder="เช่น พหลโยธิน"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Sub-section: จังหวัด, อำเภอ, ตำบล, รหัสไปรษณีย์ */}
-              <div className="pt-3 border-t border-stone-100">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-stone-600 mb-1">จังหวัด <span className="text-red-400">*</span></label>
-                    <select
-                      value={province}
-                      required
-                      onChange={(e) => setProvince(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    >
-                      <option value="">-- เลือกจังหวัด --</option>
-                      {THAI_PROVINCES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-stone-600 mb-1">อำเภอ / เขต <span className="text-red-400">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
-                      placeholder="เช่น จตุจักร"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-stone-600 mb-1">ตำบล / แขวง <span className="text-red-400">*</span></label>
-                    <input
-                      type="text"
-                      required
-                      value={subdistrict}
-                      onChange={(e) => setSubdistrict(e.target.value)}
-                      placeholder="เช่น เสนานิคม"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-stone-600 mb-1">รหัสไปรษณีย์</label>
-                    <input
-                      type="text"
-                      maxLength={5}
-                      value={zipcode}
-                      onChange={(e) => setZipcode(e.target.value)}
-                      placeholder="เช่น 10900"
-                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="permission-check"
-                  checked={petPermission}
-                  onChange={(e) => setPetPermission(e.target.checked)}
-                  className="w-4 h-4 text-primary rounded border-stone-300 focus:ring-primary accent-primary cursor-pointer"
-                />
-                <label htmlFor="permission-check" className="text-stone-700 font-medium cursor-pointer">
-                  สถานที่พักอาศัยนี้อนุญาตให้เลี้ยงสัตว์เลี้ยงได้อย่างถูกต้อง
+                  ชื่อ-นามสกุล
+                  <span className="ml-1 text-red-500">
+                    *
+                  </span>
                 </label>
+
+                <input
+                  id="full_name"
+                  type="text"
+                  value={fullName}
+                  onChange={(event) =>
+                    setFullName(
+                      event.target.value
+                    )
+                  }
+                  required
+                  placeholder="กรอกชื่อ-นามสกุล"
+                  className="w-full rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-medium text-stone-700"
+                >
+                  อีเมล
+                </label>
+
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  disabled
+                  className="w-full cursor-not-allowed rounded-xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-400"
+                />
+
+                <p className="mt-1.5 text-xs text-stone-400">
+                  อีเมลผูกกับบัญชี ไม่สามารถแก้ไขจากหน้านี้
+                </p>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="mb-2 block text-sm font-medium text-stone-700"
+                >
+                  เบอร์โทรศัพท์
+                </label>
+
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  disabled
+                  className="w-full cursor-not-allowed rounded-xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-400"
+                />
+
+                <p className="mt-1.5 text-xs text-stone-400">
+                  เบอร์โทรศัพท์ยังไม่เปิดให้แก้ไขจากหน้านี้
+                </p>
+              </div>
+
+              {/* Date */}
+              <div>
+                <label
+                  htmlFor="date_of_birth"
+                  className="mb-2 block text-sm font-medium text-stone-700"
+                >
+                  วันเกิด
+                </label>
+
+                <input
+                  id="date_of_birth"
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(event) =>
+                    setDateOfBirth(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
+                />
+              </div>
+
+              {/* Salary */}
+              <div>
+                <label
+                  htmlFor="salary"
+                  className="mb-2 block text-sm font-medium text-stone-700"
+                >
+                  รายได้เฉลี่ยต่อเดือน
+                </label>
+
+                <div className="relative">
+                  <input
+                    id="salary"
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={salary}
+                    onChange={(event) =>
+                      setSalary(
+                        event.target.value ===
+                          ""
+                          ? ""
+                          : Number(
+                            event
+                              .target
+                              .value
+                          )
+                      )
+                    }
+                    placeholder="เช่น 30000"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 pr-16 text-sm text-stone-700 outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
+                  />
+
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-stone-400">
+                    บาท
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Section 3: ครัวเรือนและสัตว์เลี้ยงเดิม */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
-            <h3 className="text-base font-bold text-stone-800 border-b border-stone-100 pb-3 flex items-center gap-2 font-mali">
-              <span>🐾</span> สมาชิกในบ้านและสัตว์เลี้ยงปัจจุบัน
-            </h3>
+          {/* Divider */}
+          <div className="my-8 border-t border-[#F1D8D1]" />
 
-            <div className="space-y-4 font-prompt text-xs">
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">จำนวนสัตว์เลี้ยงเดิมที่มีอยู่ในบ้าน (ตัว)</label>
+          {/* ========================================
+                        Section 2
+                    ======================================== */}
+
+          <section
+            aria-labelledby="residence-title"
+            className="space-y-5"
+          >
+            <div>
+              <h2
+                id="residence-title"
+                className="font-mali text-xl font-semibold text-stone-700"
+              >
+                ข้อมูลที่พักอาศัย
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-stone-500">
+                ข้อมูลนี้ใช้ประกอบการพิจารณาความเหมาะสมในการรับเลี้ยงสัตว์
+              </p>
+            </div>
+
+            {/* Accommodation */}
+            <div>
+              <label
+                htmlFor="accommodation_type"
+                className="mb-2 block text-sm font-medium text-stone-700"
+              >
+                ลักษณะที่พักอาศัย
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
+              </label>
+
+              <select
+                id="accommodation_type"
+                value={accommodationType}
+                onChange={(event) =>
+                  setAccommodationType(
+                    event.target.value
+                  )
+                }
+                required
+                className="w-full rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 text-sm text-stone-700 outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
+              >
+                <option value="">
+                  -- เลือกลักษณะที่พัก --
+                </option>
+
+                <option value="บ้านเดี่ยว (มีรั้วรอบขอบชิด)">
+                  บ้านเดี่ยว (มีรั้วรอบขอบชิด)
+                </option>
+
+                <option value="ทาวน์โฮม / ทาวน์เฮาส์">
+                  ทาวน์โฮม / ทาวน์เฮาส์
+                </option>
+
+                <option value="คอนโดมิเนียม (Pet-Friendly)">
+                  คอนโดมิเนียม (Pet-Friendly)
+                </option>
+
+                <option value="อพาร์ตเมนต์ / หอพัก">
+                  อพาร์ตเมนต์ / หอพัก
+                </option>
+              </select>
+            </div>
+
+            {/* Address */}
+            <div className="rounded-2xl border border-[#E8D9D1] bg-[#FCFAF8] p-4 sm:p-5">
+              <div className="mb-4">
+                <h3 className="font-mali text-base font-semibold text-stone-700">
+                  <FontAwesomeIcon
+                    icon={faHouse} aria-hidden="true" className="h-4 w-4 text-[#A65343]" /> ที่อยู่
+                </h3>
+
+                <p className="mt-1 text-xs leading-5 text-stone-500">
+                  กรุณาระบุที่อยู่สำหรับใช้ประกอบข้อมูลโปรไฟล์
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* House no */}
+                <div>
+                  <label
+                    htmlFor="house_no"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    บ้านเลขที่
+                    <span className="ml-1 text-red-500">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    id="house_no"
+                    type="text"
+                    value={
+                      addressDetails.house_no
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "house_no",
+                        event.target.value
+                      )
+                    }
+                    required
+                    placeholder="เช่น 88/12"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Village */}
+                <div>
+                  <label
+                    htmlFor="village"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    หมู่บ้าน / อาคาร / คอนโด
+                  </label>
+
+                  <input
+                    id="village"
+                    type="text"
+                    value={
+                      addressDetails.village
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "village",
+                        event.target.value
+                      )
+                    }
+                    placeholder="เช่น หมู่บ้านแสนสุข"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Moo */}
+                <div>
+                  <label
+                    htmlFor="moo"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    หมู่ที่
+                  </label>
+
+                  <input
+                    id="moo"
+                    type="text"
+                    value={
+                      addressDetails.moo
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "moo",
+                        event.target.value
+                      )
+                    }
+                    placeholder="เช่น 4"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Soi */}
+                <div>
+                  <label
+                    htmlFor="soi"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    ซอย
+                  </label>
+
+                  <input
+                    id="soi"
+                    type="text"
+                    value={
+                      addressDetails.soi
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "soi",
+                        event.target.value
+                      )
+                    }
+                    placeholder="เช่น พหลโยธิน 32"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Road */}
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="road"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    ถนน
+                  </label>
+
+                  <input
+                    id="road"
+                    type="text"
+                    value={
+                      addressDetails.road
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "road",
+                        event.target.value
+                      )
+                    }
+                    placeholder="เช่น พหลโยธิน"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Province */}
+                <div>
+                  <label
+                    htmlFor="province"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    จังหวัด
+                    <span className="ml-1 text-red-500">
+                      *
+                    </span>
+                  </label>
+
+                  <select
+                    id="province"
+                    value={
+                      addressDetails.province
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "province",
+                        event.target.value
+                      )
+                    }
+                    required
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  >
+                    <option value="">
+                      -- เลือกจังหวัด --
+                    </option>
+
+                    {THAI_PROVINCES.map(
+                      (province) => (
+                        <option
+                          key={province}
+                          value={province}
+                        >
+                          {province}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                {/* District */}
+                <div>
+                  <label
+                    htmlFor="district"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    อำเภอ / เขต
+                    <span className="ml-1 text-red-500">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    id="district"
+                    type="text"
+                    value={
+                      addressDetails.district
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "district",
+                        event.target.value
+                      )
+                    }
+                    required
+                    placeholder="เช่น จตุจักร"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Subdistrict */}
+                <div>
+                  <label
+                    htmlFor="subdistrict"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    ตำบล / แขวง
+                    <span className="ml-1 text-red-500">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    id="subdistrict"
+                    type="text"
+                    value={
+                      addressDetails.subdistrict
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "subdistrict",
+                        event.target.value
+                      )
+                    }
+                    required
+                    placeholder="เช่น เสนานิคม"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+
+                {/* Zipcode */}
+                <div>
+                  <label
+                    htmlFor="zipcode"
+                    className="mb-1.5 block text-sm text-stone-600"
+                  >
+                    รหัสไปรษณีย์
+                  </label>
+
+                  <input
+                    id="zipcode"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={5}
+                    value={
+                      addressDetails.zipcode
+                    }
+                    onChange={(event) =>
+                      updateAddress(
+                        "zipcode",
+                        event.target.value.replace(
+                          /\D/g,
+                          ""
+                        )
+                      )
+                    }
+                    placeholder="เช่น 10900"
+                    className="w-full rounded-xl border border-[#E8D9D1] bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-[#A65343]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Pet permission */}
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#E8D9D1] bg-[#FFF8F5] p-4">
+              <input
+                type="checkbox"
+                checked={petPermission}
+                onChange={(event) =>
+                  setPetPermission(
+                    event.target.checked
+                  )
+                }
+                className="mt-0.5 h-4 w-4 accent-[#A65343]"
+              />
+
+              <span>
+                <span className="block text-sm font-medium text-stone-700">
+                  ที่พักอาศัยอนุญาตให้เลี้ยงสัตว์
+                </span>
+
+                <span className="mt-1 block text-xs leading-5 text-stone-500">
+                  ใช้ข้อมูลนี้ประกอบการพิจารณาความพร้อมในการรับเลี้ยง
+                </span>
+              </span>
+            </label>
+          </section>
+
+          {/* Divider */}
+          <div className="my-8 border-t border-[#F1D8D1]" />
+
+          {/* ========================================
+                        Section 3
+                    ======================================== */}
+
+          <section
+            aria-labelledby="pets-title"
+            className="space-y-5"
+          >
+            <div>
+              <h2
+                id="pets-title"
+                className="font-mali text-xl font-semibold text-stone-700"
+              >
+                สัตว์เลี้ยงและสมาชิกในบ้าน
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-stone-500">
+                ข้อมูลประกอบเกี่ยวกับสัตว์เลี้ยงที่มีอยู่ในปัจจุบัน
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="animal_count"
+                className="mb-2 block text-sm font-medium text-stone-700"
+              >
+                จำนวนสัตว์เลี้ยงที่มีอยู่
+              </label>
+
+              <div className="relative sm:max-w-xs">
                 <input
+                  id="animal_count"
                   type="number"
                   min="0"
                   value={animalCount}
-                  onChange={(e) => setAnimalCount(Number(e.target.value))}
-                  className="w-full sm:w-1/3 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition"
+                  onChange={(event) =>
+                    setAnimalCount(
+                      Math.max(
+                        0,
+                        Number(
+                          event.target
+                            .value
+                        ) || 0
+                      )
+                    )
+                  }
+                  className="w-full rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 pr-12 text-sm outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
                 />
-              </div>
 
-              <div>
-                <label className="block font-medium text-stone-700 mb-1.5">บริบทสมาชิกในบ้าน / รายละเอียดสัตว์เดิม (ถ้ามี)</label>
-                <textarea
-                  rows={3}
-                  value={residenceNote}
-                  onChange={(e) => setResidenceNote(e.target.value)}
-                  placeholder="เช่น อาศัยอยู่คนเดียว ไม่มีเด็กเล็ก / มีแมวไทย 1 ตัว ทำหมันและฉีดวัคซีนแล้ว"
-                  className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-primary focus:bg-white outline-none transition leading-relaxed"
-                />
-                <span className="text-[11px] text-stone-400 mt-1 block">
-                  * ข้อมูลนี้ใช้ประกอบการพิจารณาความพร้อมของสถานที่และความเข้ากันได้กับสัตว์เลี้ยง
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-stone-400">
+                  ตัว
                 </span>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="px-6 py-3 rounded-2xl border border-stone-200 text-stone-500 font-prompt text-xs font-semibold hover:bg-stone-50 transition cursor-pointer"
-            >
-              ล้างค่าเดิม
-            </button>
+            <div>
+              <label
+                htmlFor="residence_note"
+                className="mb-2 block text-sm font-medium text-stone-700"
+              >
+                รายละเอียดสมาชิกในบ้าน / สัตว์เลี้ยงเดิม
+              </label>
+
+              <textarea
+                id="residence_note"
+                rows={4}
+                value={residenceNote}
+                onChange={(event) =>
+                  setResidenceNote(
+                    event.target.value
+                  )
+                }
+                placeholder="เช่น อาศัยอยู่คนเดียว / มีแมว 1 ตัว / มีเด็กเล็กในบ้าน"
+                className="w-full resize-y rounded-xl border border-[#E8D9D1] bg-[#FCFAF8] px-4 py-3 text-sm leading-6 text-stone-700 outline-none transition focus:border-[#A65343] focus:bg-white focus:ring-2 focus:ring-[#A65343]/10"
+              />
+            </div>
+          </section>
+
+          {/* Actions */}
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#F1D8D1] pt-6 sm:flex-row sm:justify-end">
+
             <button
               type="submit"
               disabled={saving}
-              className="bg-primary hover:bg-primaryHover text-white px-8 py-3 rounded-2xl text-xs font-semibold font-prompt shadow-sm transition disabled:opacity-50 cursor-pointer"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#A65343] px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-[#88432F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A65343] focus-visible:ring-offset-4 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {saving ? "กำลังบันทึก..." : "บันทึกข้อมูลส่วนตัว"}
+              {saving
+                ? "กำลังบันทึก..."
+                : "บันทึกข้อมูล"}
             </button>
           </div>
         </form>
-      </main>
-
-      {/* Modal Preview */}
-      {previewOpen && (
-        <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-xl border border-stone-100 relative max-h-[90vh] overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(false)}
-              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center font-bold text-xs cursor-pointer"
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">📋</span>
-              <div>
-                <h3 className="text-lg font-bold text-stone-800 font-mali">ฟอร์มขอรับเลี้ยงสัตว์ (ตัวอย่าง Auto-Fill)</h3>
-                <p className="text-xs text-stone-500 font-prompt">
-                  ข้อมูลชุดนี้จะถูกส่งต่อไปยังแบบฟอร์มยื่นขอรับเลี้ยงสัตว์อัตโนมัติ
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 bg-bgAccent/70 p-3 rounded-2xl mb-5 border border-primary/20">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-xl">
-                🐶
-              </div>
-              <div>
-                <p className="font-itim text-base text-stone-800">เคสตัวอย่าง: น้องหมูปิ้ง (หาบ้าน)</p>
-                <p className="text-[11px] font-prompt text-primaryHover">พิกัดศูนย์พักพิงในระบบ</p>
-              </div>
-            </div>
-
-            <div className="space-y-3 font-prompt text-xs border border-stone-200/80 rounded-2xl p-5 bg-stone-50/50">
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">ผู้ยื่นคำขอ:</span>
-                <span className="font-semibold text-stone-800">{fullName || "-"}</span>
-              </div>
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">อีเมลติดต่อ:</span>
-                <span className="text-stone-700">{email || "-"}</span>
-              </div>
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">วันเดือนปีเกิด:</span>
-                <span className="text-stone-700">{birthdate || "-"}</span>
-              </div>
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">ระดับรายได้ต่อเดือน:</span>
-                <span className="text-stone-700">{salary ? `${Number(salary).toLocaleString()} บาท` : "-"}</span>
-              </div>
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">ลักษณะที่อยู่อาศัย:</span>
-                <span className="text-stone-700">{housing}</span>
-              </div>
-              <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400">อนุญาตให้เลี้ยงสัตว์:</span>
-                <span className="text-stone-700">{petPermission ? "ใช่ (อนุญาต)" : "ไม่อนุญาต"}</span>
-              </div>
-              <div className="border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400 block mb-1">ที่อยู่ฉบับเต็ม:</span>
-                <span className="text-stone-700 leading-relaxed block font-medium">
-                  {fullAddressPreview || "ยังไม่ได้ระบุที่อยู่"}
-                </span>
-              </div>
-              <div className="border-b border-stone-200/60 pb-2">
-                <span className="text-stone-400 block mb-1">จำนวนสัตว์เลี้ยงเดิม:</span>
-                <span className="text-stone-700">{animalCount} ตัว</span>
-              </div>
-              <div>
-                <span className="text-stone-400 block mb-1">สมาชิกในบ้านและบริบทที่พัก:</span>
-                <span className="text-stone-700">{residenceNote || "-"}</span>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3 font-prompt">
-              <button
-                type="button"
-                onClick={() => setPreviewOpen(false)}
-                className="bg-primary hover:bg-primaryHover text-white px-6 py-2.5 rounded-xl text-xs cursor-pointer"
-              >
-                ปิดหน้าต่าง
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </main>
   );
 }
